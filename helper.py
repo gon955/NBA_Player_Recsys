@@ -22,4 +22,6 @@ def assign_era(season: int) -> str:
         return "2008-2015"             # Early Spacing Adaptation
     if 1999 <= season <= 2007:
         return "1999-2007"             # Post Hand-Check / Zone
-    return "1990-1998"                  # Physical Defense (your current min is 2004 so this may be unused)
+    return "1990-1998"                  # Physical Defense
+
+

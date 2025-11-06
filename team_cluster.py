@@ -132,6 +132,8 @@ print(counts)
 
 #master_clustered['cluster_label'] = master_clustered['cluster'].map(cluster_labels)
 
+master_team_clustered.to_csv("master_team_clustered.csv",index = False)
+
 
 import matplotlib.pyplot as plt
 import seaborn as sns
