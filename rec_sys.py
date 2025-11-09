@@ -53,6 +53,8 @@ players = pd.read_csv("master_clustered.csv")
 teams   = pd.read_csv("master_team_clustered.csv")
 adv_raw = pd.read_csv("data/Advanced.csv")
 
+adv_raw = adv_raw[adv_raw["g"] > 20]
+
 players["team_full"] = [
     canonical_team(abbr, int(season)) for abbr, season in zip(players["team_per100"], players["season"])
 ]
@@ -117,9 +119,7 @@ players["mp"] = players["mp"].astype("float64")
 if "item_id" not in players:
     players["item_id"] = players["player_id"].astype(str) + "_" + players["season"].astype(str)
     players["item_id"] = players["item_id"].astype("category")
-    players["display_name"] = players["player"].astype(str) + " (" + players["season"].astype(str) + ")"
 
-item_display = players[["item_id","display_name","era"]].drop_duplicates()
 
 interactions = (
     stints[["user_id","item_id","mp","era"]]
@@ -128,10 +128,7 @@ interactions = (
       .dropna(subset=["user_id","item_id"])
       .drop_duplicates(subset=["user_id","item_id"])
 )
-
-# players.info()
-# teams.info()
-# stints.info()
+interactions.to_csv("interactions.csv",index = False)
 
 
 item_feats = (
@@ -145,6 +142,16 @@ item_feats = (
       )
       .dropna(subset=["item_id","era"])
       [["item_id","era_feat","pcl_feat","pos_feat","age_feat"]]
+)
+
+players["item_id"] = players["player_id"].astype(str) + "_" + players["season"].astype(str)
+players["display_name"] = (
+    players["player"].astype(str)
+    + " (" + players["season"].astype(str) + ")"
+)
+
+display_map = dict(
+    zip(players["item_id"].astype(str), players["display_name"].astype(str))
 )
 
 user_feats = (
@@ -238,17 +245,39 @@ def build_lightfm_for_era(era,epochs, no_components, loss):
     auc  = auc_score(model, inter_mat, user_features=ufeat, item_features=ifeat, num_threads=1).mean()
     p10  = precision_at_k(model, inter_mat, k=10, user_features=ufeat, item_features=ifeat, num_threads=1).mean()
     print(f"[{era}] train AUC={auc:.3f}  P@10={p10:.3f}", flush=True)
-    return model, ds, ufeat, ifeat, items
+    
+    pmap = (
+    players[players["era"] == era]
+    .assign(item_id=lambda d: d["player_id"].astype(str) + "_" + d["season"].astype(str))
+    .set_index("item_id")["player"]
+    .dropna()
+    .to_dict()
+)
+
+    smap = (
+        stints[stints["era"] == era]
+        .assign(item_id=lambda d: d["player_id"].astype(str) + "_" + d["season"].astype(str))
+        .merge(players[["player_id", "player"]], on="player_id", how="left")
+        .assign(player=lambda d: d["player"].fillna("Unknown Player"))
+        .set_index("item_id")["player"]
+        .to_dict()
+    )
+
+    display_map = {**smap, **pmap}
+
+    
+    
+    return model, ds, ufeat, ifeat, items, display_map
     
 from types import SimpleNamespace
 
 models = {}
 for era in ["1999-2007","2008-2015","2016-present"]:
-    model, ds, ufeat, ifeat, items = result = build_lightfm_for_era(era,30,64,"warp")
+    model, ds, ufeat, ifeat, items, display_map = result = build_lightfm_for_era(era,30,64,"warp")
     models[era] = SimpleNamespace(
-        model=model,ds=ds,ufeat=ufeat,ifeat=ifeat,items=items
+        model=model,ds=ds,ufeat=ufeat,ifeat=ifeat,items=items,display_map=display_map
     )
     
-save_models(models, path="models_all.joblib")
+save_models(models,display_map, path="models_all.joblib")
     
-display_map = dict(zip(item_display["item_id"].astype(str), item_display["display_name"].astype(str)))
+
