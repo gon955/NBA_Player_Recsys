@@ -2,9 +2,14 @@ import numpy as np
 from helper import load_models
 from types import SimpleNamespace
 import pandas as pd
+import os
 
-models: dict[str, SimpleNamespace] = load_models("models_all.joblib")
-interactions = pd.read_csv("interactions.csv")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_PATH = os.path.join(BASE_DIR, "models_all.joblib")
+INTERACTIONS_PATH = os.path.join(BASE_DIR, "interactions.csv")
+
+models: dict[str, SimpleNamespace] = load_models(MODEL_PATH)
+interactions = pd.read_csv(INTERACTIONS_PATH)
 
 def get_roster_for_team(user_id: str, era: str, interactions_df) -> list[str]:
     roster = (
@@ -61,14 +66,16 @@ def recommend_for_user(era: str, user_id: str, k: int = 10, exclude_items=None,d
             print(f"[WARN] No display name for {raw_item_id}")
         else:
             print(f"[OK] {raw_item_id} → {label}")
+        
+        out.append((label, float(scores[j])))
 
     return out
     
-if __name__ == "__main__":
-    era  = "2016-present"
-    user = "Atlanta Hawks_2019"   # must exist in this era
-    pack = models[era]
-    disp = pack.display_map
-    exclude_items = get_roster_for_team(user,era,interactions)
-    print(f"[INFO] Excluding {len(exclude_items)} players already on {user} roster.")
-    recs = recommend_for_user(era,user, k = 10,exclude_items=exclude_items)
+# if __name__ == "__main__":
+#     era  = "2016-present"
+#     user = "Atlanta Hawks_2019"   # must exist in this era
+#     pack = models[era]
+#     disp = pack.display_map
+#     exclude_items = get_roster_for_team(user,era,interactions)
+#     print(f"[INFO] Excluding {len(exclude_items)} players already on {user} roster.")
+#     recs = recommend_for_user(era,user, k = 10,exclude_items=exclude_items)
