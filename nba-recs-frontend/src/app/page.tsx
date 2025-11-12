@@ -139,7 +139,10 @@ export default function HomePage() {
                   key={`${r.player}-${idx}`}
                   className="rounded-xl border bg-white px-4 py-3"
                 >
-                  <p className="font-medium">{idx + 1}. {r.player}</p>
+                  <div className="flex items-center gap-3">
+                    <PlayerAvatar name={r.player} photoUrl={r.photo_url} />
+                    <p className="font-medium text-gray-900">{idx + 1}. {r.player}</p>
+                  </div>
                   {r.explanation && <ExplanationCard explanation={r.explanation} />}
                 </li>
               ))}
@@ -204,10 +207,42 @@ function ExplanationCard({ explanation }: ExplanationCardProps) {
   );
 }
 
+type PlayerAvatarProps = {
+  name: string;
+  photoUrl?: string | null;
+};
+
+function PlayerAvatar({ name, photoUrl }: PlayerAvatarProps) {
+  const [failed, setFailed] = useState(false);
+  const initials = name
+    .split(" ")
+    .filter(Boolean)
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+  return (
+    <div className="h-16 w-16 flex items-center justify-center rounded-xl bg-gray-100 ring-1 ring-gray-200 overflow-hidden">
+      {photoUrl && !failed ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={photoUrl}
+          alt={`${name} headshot`}
+          className="h-full w-full object-contain bg-white"
+          onError={() => setFailed(true)}
+        />
+      ) : (
+        <span className="text-sm font-semibold text-gray-600">{initials}</span>
+      )}
+    </div>
+  );
+}
+
 function describeFeature(feature: string, weight: number, variant: "user" | "item") {
   const [rawKey, rawValue = ""] = feature.split("=");
   const key = rawKey?.trim() ?? "";
-  const value = formatValue(rawValue);
+  const value = formatValueByKey(key, rawValue);
   const sentiment = weight >= 0 ? "Boosts fit" : "Adds risk";
 
   const userDescriptions: Record<string, string> = {
@@ -233,6 +268,43 @@ function describeFeature(feature: string, weight: number, variant: "user" | "ite
   }
   const fallback = value || key || feature;
   return `${sentiment} via ${formatValue(fallback)}`;
+}
+
+function formatValueByKey(key: string, rawValue: string) {
+  const valueMaps: Record<string, Record<string, string>> = {
+    pace: {
+      slow: "Slow Pace",
+      "med-": "Moderately Slow Pace",
+      "med+": "Moderately Fast Pace",
+      fast: "Fast Pace",
+    },
+    ortg: {
+      o_low: "Low Offense",
+      "o_mid-": "Below-average Offense",
+      "o_mid+": "Above-average Offense",
+      o_high: "High Offense",
+    },
+    drtg: {
+      d_best: "Elite Defense",
+      d_good: "Good Defense",
+      d_ok: "Average Defense",
+      d_poor: "Poor Defense",
+    },
+    age: {
+      U22: "22 or younger",
+      "23-26": "Ages 23-26",
+      "27-30": "Ages 27-30",
+      "31-34": "Ages 31-34",
+      "35-39": "Ages 35-39",
+      "40+": "40+",
+    },
+  };
+
+  const map = valueMaps[key];
+  if (map && rawValue in map) {
+    return map[rawValue];
+  }
+  return formatValue(rawValue);
 }
 
 function formatValue(value: string) {

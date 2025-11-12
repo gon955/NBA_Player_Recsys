@@ -156,13 +156,12 @@ item_feats = (
     players[["item_id","era","cluster_label","pos","age","player_id","season"]]
       .assign(
         age_bin=lambda d: pd.cut(d["age"], bins=age_bins, labels=age_labels, right=False, include_lowest=True),
-        era_feat=lambda d: "era=" + d["era"].astype(str),
         pcl_feat=lambda d: "pcluster=" + d["cluster_label"].astype(str),
         pos_feat=lambda d: "pos=" + d["pos"].astype(str),
         age_feat=lambda d: "age=" + d["age_bin"].astype(str),
       )
       .dropna(subset=["item_id","era"])
-      [["item_id","player_id","season","era_feat","pcl_feat","pos_feat","age_feat"]]
+      [["item_id","era","player_id","season","pcl_feat","pos_feat","age_feat"]]
 )
 
 all_items = interactions[["item_id","era"]].drop_duplicates()
@@ -187,6 +186,10 @@ item_feats = all_items.merge(
     on="item_id",
     how="left",
 )
+if "era_y" in item_feats:
+    item_feats = item_feats.drop(columns=["era_y"])
+if "era_x" in item_feats:
+    item_feats = item_feats.rename(columns={"era_x": "era"})
 item_feats = item_feats.merge(adv_meta, on="item_id", how="left", suffixes=("","_adv"))
 
 cluster_lookup = (
@@ -204,13 +207,12 @@ def fill_cluster(row):
         return "pcluster=" + fallback
     return "pcluster=unknown"
 
-item_feats["era_feat"] = item_feats["era_feat"].fillna("era=" + item_feats["era"].astype(str))
 item_feats["pcl_feat"] = item_feats.apply(fill_cluster, axis=1)
 item_feats["pos_feat"] = item_feats["pos_feat"].fillna(item_feats["pos_feat_adv"])
 item_feats["age_feat"] = item_feats["age_feat"].fillna(item_feats["age_feat_adv"])
 item_feats["pos_feat"] = item_feats["pos_feat"].fillna("pos=unknown")
 item_feats["age_feat"] = item_feats["age_feat"].fillna("age=unknown")
-item_feats = item_feats[["item_id","era_feat","pcl_feat","pos_feat","age_feat"]]
+item_feats = item_feats[["item_id","era","pcl_feat","pos_feat","age_feat"]]
 
 players["item_id"] = players["player_id"].astype(str) + "_" + players["season"].astype(str)
 players["display_name"] = (
@@ -244,7 +246,7 @@ user_feats = (
 def build_lightfm_for_era(era,epochs, no_components, loss):
     I = interactions[interactions["era"] == era][["user_id","item_id","weight"]]
     U = user_feats[user_feats["era_feat"] == f"era={era}"]
-    V = item_feats[item_feats["era_feat"] == f"era={era}"]
+    V = item_feats[item_feats["era"] == era]
 
     users = I["user_id"].unique()
     items = I["item_id"].unique()
@@ -261,7 +263,7 @@ def build_lightfm_for_era(era,epochs, no_components, loss):
         U[["tcl_feat","pace_feat","o_feat","d_feat","era_feat"]].stack().unique()
     )
     item_feature_tokens = (
-        V[["pcl_feat","pos_feat","age_feat","era_feat"]].stack().unique()
+        V[["pcl_feat","pos_feat","age_feat"]].stack().unique()
     )
 
     # Dataset
@@ -280,7 +282,7 @@ def build_lightfm_for_era(era,epochs, no_components, loss):
         for row in U.itertuples(index=False)
     )
     ifeat = ds.build_item_features(
-        (row.item_id, [row.pcl_feat, row.pos_feat, row.age_feat, row.era_feat])
+        (row.item_id, [row.pcl_feat, row.pos_feat, row.age_feat])
         for row in V.itertuples(index=False)
     )
     print(f"[{era}] built feature matrices: U={ufeat.shape} V={ifeat.shape}", flush=True)

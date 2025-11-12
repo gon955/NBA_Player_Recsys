@@ -102,8 +102,12 @@ def recommend_for_user(era: str, user_id: str, k: int = 10, exclude_items=None,d
     exclude_items = set(exclude_items or [])
 
     user_map, user_feat_map, item_map, item_feat_map = pack.ds.mapping()
+    _, user_season = user_id.rsplit("_", 1)
 
-    candidates = [i for i in item_map.keys() if i not in exclude_items]
+    candidates = [
+        i for i in item_map.keys()
+        if i not in exclude_items and i.endswith(f"_{user_season}")
+    ]
 
     uidx = user_map[user_id]
     iidx = np.array([item_map[i] for i in candidates if i in item_map], dtype=np.int64)
@@ -130,7 +134,8 @@ def recommend_for_user(era: str, user_id: str, k: int = 10, exclude_items=None,d
         
         rec = {
             "player": label,
-            "score": float(scores[j])
+            "score": float(scores[j]),
+            "raw_item_id": raw_item_id,
         }
 
         if explain:
