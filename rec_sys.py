@@ -18,12 +18,10 @@ def display_map_for_era(era: str) -> dict[str, str]:
     era_stints["player_name"] = era_stints["player_id"].map(name_map)
     era_stints["label"] = era_stints["player_name"].fillna("Unknown Player") \
                           + " (" + era_stints["season"].astype(str) + ")"
-    # Deduplicate in case of multiple rows for same item_id
     era_stints = era_stints.drop_duplicates("item_id")
     return dict(zip(era_stints["item_id"].astype(str), era_stints["label"].astype(str)))
 
 TEAM_CANON = {
-    # simple, unambiguous
     "ATL": "Atlanta Hawks", "BOS": "Boston Celtics", "BKN": "Brooklyn Nets", "BRK": "Brooklyn Nets", "NJN": "New Jersey Nets",
     "NYK": "New York Knicks", "PHI": "Philadelphia 76ers", "TOR": "Toronto Raptors", "CHI": "Chicago Bulls",
     "CLE": "Cleveland Cavaliers", "DET": "Detroit Pistons", "IND": "Indiana Pacers", "MIL": "Milwaukee Bucks",
@@ -58,7 +56,6 @@ def norm_str(x):
 
 
 players = pd.read_csv("master_clustered.csv")
-players = players[players["g"] > 35]
 
 teams = pd.read_csv("master_team_clustered.csv")
 
@@ -97,11 +94,10 @@ stints = (
                 ["team","season","player_id","mp"]]
            .groupby(["team","season","player_id"], as_index=False)["mp"].sum()
 )
-#stints = stints[~stints["team"].isin(["2TM","3TM","4TM","5TM"])]
 stints["team_full"] = [
     canonical_team(abbr, int(season)) for abbr, season in zip(stints["team"], stints["season"])
 ]
-stints = stints[stints["team_full"].notna()]  # defensively drop any leftovers
+stints = stints[stints["team_full"].notna()] 
 
 stints["user_id"] = stints["team_full"] + "_" + stints["season"].astype(str)
 stints["item_id"] = stints["player_id"].astype(str) + "_" + stints["season"].astype(str)
@@ -153,18 +149,68 @@ interactions = (
 interactions.to_csv("interactions.csv",index = False)
 
 
+age_bins = [0, 22, 26, 30, 35, 40, 60]
+age_labels = ["U22", "23-26", "27-30", "31-34", "35-39", "40+"]
+
 item_feats = (
-    players[["item_id","era","cluster_label","pos","age"]]
+    players[["item_id","era","cluster_label","pos","age","player_id","season"]]
       .assign(
-        age_bin=lambda d: pd.cut(d["age"], bins=[0,22,26,30,40], labels=["U22","23-26","27-30","31+"]),
+        age_bin=lambda d: pd.cut(d["age"], bins=age_bins, labels=age_labels, right=False, include_lowest=True),
         era_feat=lambda d: "era=" + d["era"].astype(str),
         pcl_feat=lambda d: "pcluster=" + d["cluster_label"].astype(str),
         pos_feat=lambda d: "pos=" + d["pos"].astype(str),
         age_feat=lambda d: "age=" + d["age_bin"].astype(str),
       )
       .dropna(subset=["item_id","era"])
-      [["item_id","era_feat","pcl_feat","pos_feat","age_feat"]]
+      [["item_id","player_id","season","era_feat","pcl_feat","pos_feat","age_feat"]]
 )
+
+all_items = interactions[["item_id","era"]].drop_duplicates()
+all_items[["player_id","season"]] = all_items["item_id"].str.split("_", n=1, expand=True)
+all_items["season"] = all_items["season"].astype(int)
+
+adv_meta = (
+    adv_raw[["player_id","season","pos","age"]]
+      .dropna(subset=["player_id","season"])
+      .drop_duplicates(subset=["player_id","season"], keep="last")
+      .assign(
+        item_id=lambda d: d["player_id"].astype(str) + "_" + d["season"].astype(str),
+        age_bin=lambda d: pd.cut(d["age"], bins=age_bins, labels=age_labels, right=False, include_lowest=True),
+        pos_feat=lambda d: "pos=" + d["pos"].astype(str),
+        age_feat=lambda d: "age=" + d["age_bin"].astype(str),
+      )
+      [["item_id","pos_feat","age_feat"]]
+)
+
+item_feats = all_items.merge(
+    item_feats.rename(columns={"player_id":"player_id_meta","season":"season_meta"}),
+    on="item_id",
+    how="left",
+)
+item_feats = item_feats.merge(adv_meta, on="item_id", how="left", suffixes=("","_adv"))
+
+cluster_lookup = (
+    players.sort_values("season")
+           .groupby("player_id")["cluster_label"]
+           .agg(lambda s: s.iloc[-1])
+           .to_dict()
+)
+
+def fill_cluster(row):
+    if pd.notna(row["pcl_feat"]):
+        return row["pcl_feat"]
+    fallback = cluster_lookup.get(row["player_id"])
+    if isinstance(fallback, str):
+        return "pcluster=" + fallback
+    return "pcluster=unknown"
+
+item_feats["era_feat"] = item_feats["era_feat"].fillna("era=" + item_feats["era"].astype(str))
+item_feats["pcl_feat"] = item_feats.apply(fill_cluster, axis=1)
+item_feats["pos_feat"] = item_feats["pos_feat"].fillna(item_feats["pos_feat_adv"])
+item_feats["age_feat"] = item_feats["age_feat"].fillna(item_feats["age_feat_adv"])
+item_feats["pos_feat"] = item_feats["pos_feat"].fillna("pos=unknown")
+item_feats["age_feat"] = item_feats["age_feat"].fillna("age=unknown")
+item_feats = item_feats[["item_id","era_feat","pcl_feat","pos_feat","age_feat"]]
 
 players["item_id"] = players["player_id"].astype(str) + "_" + players["season"].astype(str)
 players["display_name"] = (
@@ -200,7 +246,6 @@ def build_lightfm_for_era(era,epochs, no_components, loss):
     U = user_feats[user_feats["era_feat"] == f"era={era}"]
     V = item_feats[item_feats["era_feat"] == f"era={era}"]
 
-    # Gather vocabularies
     users = I["user_id"].unique()
     items = I["item_id"].unique()
     
@@ -211,7 +256,7 @@ def build_lightfm_for_era(era,epochs, no_components, loss):
     print(f"[{era}] counts: I={len(I)} users={len(users)} items={len(items)} Ufeat={len(U)} Vfeat={len(V)}", flush=True)
     if len(I) == 0 or len(users) == 0 or len(items) == 0:
         print(f"[{era}] SKIP (no data)", flush=True)
-        return None  # or return a sentinel
+        return None  
     user_feature_tokens = (
         U[["tcl_feat","pace_feat","o_feat","d_feat","era_feat"]].stack().unique()
     )

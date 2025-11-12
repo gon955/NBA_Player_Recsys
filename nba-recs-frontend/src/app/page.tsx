@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect,useMemo, useState } from "react";
-import { getRecommendations, Recommendation } from "@/lib/api";
+import { getRecommendations, Recommendation, FeatureContribution } from "@/lib/api";
 
 function getEraFromYear(year: number): string {
   if (year >= 2016) return "2016-present";
@@ -9,14 +9,11 @@ function getEraFromYear(year: number): string {
   return "1999-2007";
 }
 
-const ERAS = ["1999-2007", "2008-2015", "2016-present"];
-
 export default function HomePage() {
   const [teams, setTeams] = useState<Record<string, number[]>>({});
   const [team, setTeam] = useState<string>("");
   const [season, setSeason] = useState<number | null>(null);
   const [era, setEra] = useState<string>("2016-present");
-  const [userId, setUserId] = useState<string>("Atlanta Hawks_2019");
   const [k, setK] = useState<number>(10);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -29,7 +26,8 @@ export default function HomePage() {
       .catch(() => setError("Failed to load team list"));
   }, []);
 
-  const canSubmit = useMemo(() => !!era && !!userId && k > 0, [era, userId, k]);
+  const canSubmit = useMemo(() => !!team && !!season && k > 0, [team, season, k]);
+  const userKey = team && season ? `${team}_${season}` : "";
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -38,13 +36,12 @@ export default function HomePage() {
     setError(null);
     setResults([]);
 
-    const userId = `${team}_${season}`;
     const eraVal = getEraFromYear(season!);
     setEra(eraVal);
     ///const ctrl = new AbortController();
 
     try {
-      const data = await getRecommendations({ era, user_id: userId, k },);
+      const data = await getRecommendations({ era: eraVal, user_id: userKey, k });
       setResults(data.recommendations);
     } catch (err: any) {
       setError(err?.message || "Unknown error");
@@ -140,10 +137,10 @@ export default function HomePage() {
               {results.map((r, idx) => (
                 <li
                   key={`${r.player}-${idx}`}
-                  className="flex items-center justify-between rounded-xl border bg-white px-4 py-3"
+                  className="rounded-xl border bg-white px-4 py-3"
                 >
-                  <span className="font-medium">{idx + 1}. {r.player}</span>
-                  <span className="tabular-nums text-gray-600">{r.score.toFixed(4)}</span>
+                  <p className="font-medium">{idx + 1}. {r.player}</p>
+                  {r.explanation && <ExplanationCard explanation={r.explanation} />}
                 </li>
               ))}
             </ul>
@@ -152,4 +149,93 @@ export default function HomePage() {
       </div>
     </main>
   );
+}
+
+type FeatureListProps = {
+  title: string;
+  items?: FeatureContribution[];
+  variant: "user" | "item";
+};
+
+function FeatureList({ title, items, variant }: FeatureListProps) {
+  if (!items || items.length === 0) return null;
+  return (
+    <div>
+      <p className="text-sm font-semibold text-gray-900">{title}</p>
+      <ul className="mt-1 flex flex-col gap-2 text-sm text-gray-700">
+        {items.map((feat) => (
+          <li
+            key={`${title}-${feat.feature}`}
+            className="rounded-lg bg-white/70 px-3 py-2 shadow-sm"
+          >
+            <p className="font-medium text-gray-900">
+              {describeFeature(feat.feature, feat.weight, variant)}
+            </p>
+            <p className="text-xs text-gray-500">
+              Impact: {feat.weight >= 0 ? "+" : ""}
+              {feat.weight.toFixed(2)}
+            </p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+type ExplanationCardProps = {
+  explanation: Recommendation["explanation"];
+};
+
+function ExplanationCard({ explanation }: ExplanationCardProps) {
+  if (!explanation) return null;
+  const { error, top_user_features, top_item_features } = explanation;
+
+  return (
+    <div className="mt-3 rounded-lg bg-gray-50 px-3 py-2 text-sm text-gray-700">
+      {error ? (
+        <p className="text-red-600">Explanation unavailable: {error}</p>
+      ) : (
+        <div className="grid gap-3 sm:grid-cols-2">
+          <FeatureList title="Team fit drivers" items={top_user_features} variant="user" />
+          <FeatureList title="Player traits" items={top_item_features} variant="item" />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function describeFeature(feature: string, weight: number, variant: "user" | "item") {
+  const [rawKey, rawValue = ""] = feature.split("=");
+  const key = rawKey?.trim() ?? "";
+  const value = formatValue(rawValue);
+  const sentiment = weight >= 0 ? "Boosts fit" : "Adds risk";
+
+  const userDescriptions: Record<string, string> = {
+    tcluster: `Team identity is ${value}`,
+    pace: `Team pace target is ${value}`,
+    ortg: `Offensive profile leans ${value}`,
+    drtg: `Defensive profile trends ${value}`,
+    era: `Team era tag is ${value}`,
+  };
+
+  const itemDescriptions: Record<string, string> = {
+    pcluster: `Player archetype: ${value}`,
+    pos: `Primary position: ${value}`,
+    age: `Age band: ${value}`,
+    era: `Season belongs to ${value}`,
+  };
+
+  if (variant === "user" && userDescriptions[key]) {
+    return `${sentiment} because ${userDescriptions[key]}`;
+  }
+  if (variant === "item" && itemDescriptions[key]) {
+    return `${sentiment} thanks to ${itemDescriptions[key]}`;
+  }
+  const fallback = value || key || feature;
+  return `${sentiment} via ${formatValue(fallback)}`;
+}
+
+function formatValue(value: string) {
+  if (!value) return "unknown";
+  return value.replace(/_/g, " ");
 }
