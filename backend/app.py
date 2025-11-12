@@ -57,6 +57,14 @@ def serialize_explanation(expl: dict | None):
         "top_item_features": serialize_feature_list(expl.get("top_item_features", [])),
     }
 
+def player_photo_url(raw_item_id: str | None):
+    if not raw_item_id:
+        return None
+    player_id = raw_item_id.split("_", 1)[0]
+    if not player_id:
+        return None
+    return f"https://www.basketball-reference.com/req/202106291/images/players/{player_id}.jpg"
+
 @app.post("/recommendations")
 def get_recommendations(req: RecommendRequest):
     if req.era not in models:
@@ -102,6 +110,7 @@ def get_recommendations(req: RecommendRequest):
             {
                 "player": rec.get("player"),
                 "score": float(rec.get("score", 0.0)),
+                "photo_url": player_photo_url(rec.get("raw_item_id")),
                 "explanation": serialize_explanation(rec.get("explanation")),
             }
             for rec in recs

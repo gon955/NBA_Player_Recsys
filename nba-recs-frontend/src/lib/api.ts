@@ -21,6 +21,7 @@ export type RecommendationExplanation = {
 export type Recommendation = {
   player: string;
   score: number;
+  photo_url?: string | null;
   explanation?: RecommendationExplanation;
 };
 
