@@ -6,9 +6,32 @@ from fastapi import FastAPI
 from helper import load_models
 from inference import recommend_for_user, get_roster_for_team, models, interactions
 from pydantic import BaseModel
-
+from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI(title="NBA Recommender API")
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  
+    allow_credentials=True,
+    allow_methods=["*"],  
+    allow_headers=["*"],
+)
+
+@app.get("/teams")
+def get_team_seasons():
+    """Return a mapping of team -> available seasons based on the interactions data."""
+    df = interactions.copy()
+    df["team"] = df["user_id"].str.extract(r"^(.*)_")
+    df["season"] = df["user_id"].str.extract(r"_(\d+)$").astype(int)
+
+    team_map = (
+        df.groupby("team")["season"]
+        .unique()
+        .apply(lambda x: sorted(x.tolist()))
+        .to_dict()
+    )
+
+    return team_map
 class RecommendRequest(BaseModel):
     user_id:str
     era:str
@@ -64,6 +87,8 @@ def get_recommendations(req: RecommendRequest):
 
 
 @app.get("/")
+
+
 
 def root():
     return {"message": "NBA Player Recommender API running"}
