@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 from helper import season_totals
 from sklearn.pipeline import Pipeline
@@ -13,8 +14,9 @@ def map_cluster_label(row):
     return cluster_labels_map.get(row["era"], {}).get(int(row["cluster"]), f"c{row['cluster']}")
 
 
-team_per_100_stats = pd.read_csv("data\Team Stats Per 100 Poss.csv")
-team_adv_stats = pd.read_csv("data\Team Summaries.csv")
+DATA_DIR = "data"
+team_per_100_stats = pd.read_csv(os.path.join(DATA_DIR, "Team Stats Per 100 Poss.csv"))
+team_adv_stats = pd.read_csv(os.path.join(DATA_DIR, "Team Summaries.csv"))
 
 team_adv_stats = team_adv_stats[team_adv_stats['season'] >= 1999]
 team_per_100_stats = team_per_100_stats[team_per_100_stats['season'] >= 1999]
@@ -120,6 +122,9 @@ master_team_clustered = master_team.copy()
 master_team_clustered["cluster"] = cluster_labels_all
 master_team_clustered["cluster_label"] = master_team_clustered.apply(map_cluster_label, axis=1)
 
+CLUSTER_CARD_DIR = os.path.join("backend", "static", "cluster")
+os.makedirs(CLUSTER_CARD_DIR, exist_ok=True)
+
 counts = (
     master_team_clustered
     .groupby(["era", "cluster_label"])
@@ -129,6 +134,8 @@ counts = (
 )
 
 print(counts)
+counts_path = os.path.join(CLUSTER_CARD_DIR, "team_cluster_counts.csv")
+counts.to_csv(counts_path, index=False)
 
 #master_clustered['cluster_label'] = master_clustered['cluster'].map(cluster_labels)
 
@@ -142,6 +149,38 @@ from sklearn.manifold import TSNE
 
 
 from sklearn.decomposition import PCA
+
+TEAM_CARD_FEATURES = [
+    "o_rtg",
+    "d_rtg",
+    "n_rtg",
+    "pace",
+    "x3p_ar",
+    "ts_percent",
+]
+
+def slugify(label: str) -> str:
+    return label.lower().replace(" ", "_").replace("/", "-")
+
+def save_team_cluster_card(label: str, stats: pd.Series, reps: pd.DataFrame):
+    slug = slugify(label)
+    path = os.path.join(CLUSTER_CARD_DIR, f"team_{slug}.png")
+    if os.path.exists(path):
+        return
+    data = stats.reindex(TEAM_CARD_FEATURES).dropna()
+    if data.empty:
+        return
+    fig, ax = plt.subplots(figsize=(6, 3.5))
+    ax.barh(data.index, data.values, color="#fbbf24")
+    ax.set_title(label)
+    ax.tick_params(axis="x", labelsize=8)
+    ax.tick_params(axis="y", labelsize=8)
+    ax.grid(axis="x", color="#e2e8f0", alpha=0.4)
+    top_names = ", ".join((reps["team"] + " " + reps["season"].astype(str)).head(3).tolist())
+    fig.text(0.02, 0.01, f"Examples: {top_names}", fontsize=8, color="#475569")
+    fig.tight_layout()
+    fig.savefig(path, dpi=150)
+    plt.close(fig)
 
 for era, df_era in master_team_clustered.groupby("era", sort=False):
     prep, km = era_models[era]
@@ -157,15 +196,16 @@ for era, df_era in master_team_clustered.groupby("era", sort=False):
         "cluster_label": df_era["cluster_label"].values
     })
 
-    plt.figure(figsize=(7,5))
+    fig, ax = plt.subplots(figsize=(7,5))
     sns.scatterplot(
         data=df_plot, x="PC1", y="PC2",
-        hue="cluster_label", palette="tab10", alpha=0.7
+        hue="cluster_label", palette="tab10", alpha=0.7, ax=ax
     )
-    plt.title(f"PCA projection — {era}")
-    plt.legend(title="Cluster", bbox_to_anchor=(1.02, 1), loc="upper left")
-    plt.tight_layout()
-    plt.show()
+    ax.set_title(f"PCA projection — {era}")
+    ax.legend(title="Cluster", bbox_to_anchor=(1.02, 1), loc="upper left")
+    fig.tight_layout()
+    fig.savefig(os.path.join(CLUSTER_CARD_DIR, f"team_pca_{slugify(era)}.png"), dpi=150)
+    plt.close(fig)
     
 cluster_profiles = (
     master_team_clustered
@@ -188,3 +228,5 @@ for (era, cid), reps in master_team_clustered.groupby(["era","cluster"]):
         "opp_e_fg_percent","opp_tov_percent","opp_ft_fga"
     ]
     print(reps[cols])
+    stats = cluster_profiles.loc[(era, cid)]
+    save_team_cluster_card(label, stats, reps)

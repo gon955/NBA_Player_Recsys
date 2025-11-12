@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect,useMemo, useState } from "react";
-import { getRecommendations, Recommendation, FeatureContribution } from "@/lib/api";
+import { getRecommendations, Recommendation, FeatureContribution, getClusterSummaries, ClusterSummaryRecord } from "@/lib/api";
 
 function getEraFromYear(year: number): string {
   if (year >= 2016) return "2016-present";
@@ -18,6 +18,10 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<Recommendation[]>([]);
+  const [view, setView] = useState<"recommend" | "clusters">("recommend");
+  const [clusterData, setClusterData] = useState<{ player?: ClusterSummaryRecord[]; team?: ClusterSummaryRecord[] }>({});
+  const [clusterError, setClusterError] = useState<string | null>(null);
+  const [clusterLoading, setClusterLoading] = useState(false);
 
   useEffect(() => {
     fetch("http://127.0.0.1:8000/teams")
@@ -26,6 +30,14 @@ export default function HomePage() {
       .catch(() => setError("Failed to load team list"));
   }, []);
 
+  useEffect(() => {
+    if (view !== "clusters" || clusterData.player) return;
+    setClusterLoading(true);
+    getClusterSummaries()
+      .then((data) => setClusterData(data))
+      .catch((err) => setClusterError(err?.message || "Failed to load clusters"))
+      .finally(() => setClusterLoading(false));
+  }, [view, clusterData.player]);
   const canSubmit = useMemo(() => !!team && !!season && k > 0, [team, season, k]);
   const userKey = team && season ? `${team}_${season}` : "";
 
@@ -51,24 +63,40 @@ export default function HomePage() {
   }
 
    return (
-    <main className="min-h-screen bg-gray-50 text-gray-900">
+    <main className="min-h-screen bg-slate-950 text-slate-100">
       <div className="max-w-4xl mx-auto px-4 py-10">
-        <h1 className="text-3xl font-bold tracking-tight text-indigo-700">
+        <h1 className="text-3xl font-bold tracking-tight text-slate-50">
           NBA Player Recommender
         </h1>
-        <p className="text-gray-600 mt-2">
+        <p className="text-slate-400 mt-2">
           LightFM recommendations served by FastAPI.
         </p>
 
+        <div className="mt-6 flex gap-3">
+          <button
+            className={`rounded-full px-4 py-2 text-sm font-semibold transition ${view === "recommend" ? "bg-indigo-500 text-white" : "bg-slate-800 text-slate-300"}`}
+            onClick={() => setView("recommend")}
+          >
+            Recommendations
+          </button>
+          <button
+            className={`rounded-full px-4 py-2 text-sm font-semibold transition ${view === "clusters" ? "bg-indigo-500 text-white" : "bg-slate-800 text-slate-300"}`}
+            onClick={() => setView("clusters")}
+          >
+            Cluster Overview
+          </button>
+        </div>
+
+        {view === "recommend" && (
         <form
           onSubmit={onSubmit}
-          className="mt-6 grid gap-4 rounded-2xl bg-white p-5 shadow-sm"
+          className="mt-6 grid gap-4 rounded-2xl bg-slate-900/70 p-5 shadow-lg border border-white/5"
         >
           {/* Team Selector */}
           <div className="grid gap-1">
-            <label className="text-sm font-medium">Team</label>
+            <label className="text-sm font-medium text-slate-200">Team</label>
             <select
-              className="rounded-lg border border-gray-600 px-3 py-2 text-gray-900"
+              className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100 focus:border-indigo-400 focus:outline-none"
               value={team}
               onChange={(e) => {
                 setTeam(e.target.value);
@@ -87,9 +115,9 @@ export default function HomePage() {
           {/* Season Selector */}
           {team && (
             <div className="grid gap-1">
-              <label className="text-sm font-medium">Season</label>
+              <label className="text-sm font-medium text-slate-200">Season</label>
               <select
-                className="rounded-lg border border-gray-600 px-3 py-2 text-gray-900"
+                className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100 focus:border-indigo-400 focus:outline-none"
                 value={season ?? ""}
                 onChange={(e) => setSeason(Number(e.target.value))}
               >
@@ -105,11 +133,11 @@ export default function HomePage() {
 
           {/* Number of Recommendations */}
           <div className="grid gap-1">
-            <label className="text-sm font-medium">Number of Recommendations</label>
+            <label className="text-sm font-medium text-slate-200">Number of Recommendations</label>
             <input
               type="number"
               min={1}
-              className="w-32 rounded-lg border border-gray-600 px-3 py-2"
+              className="w-32 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100 focus:border-indigo-400 focus:outline-none"
               value={k}
               onChange={(e) => setK(Number(e.target.value))}
             />
@@ -118,30 +146,32 @@ export default function HomePage() {
           <div className="flex gap-3">
             <button
               disabled={!canSubmit || loading}
-              className="rounded-xl bg-indigo-600 hover:bg-indigo-700 px-4 py-2 text-white font-semibold disabled:opacity-50"
+              className="rounded-xl bg-indigo-500 hover:bg-indigo-400 px-4 py-2 text-white font-semibold disabled:opacity-40"
             >
               {loading ? "Scoring…" : "Get Recommendations"}
             </button>
-            {error && <span className="text-sm text-red-600">{error}</span>}
+            {error && <span className="text-sm text-rose-400">{error}</span>}
           </div>
         </form>
+        )}
 
+        {view === "recommend" ? (
         <section className="mt-8">
-          <h2 className="text-xl font-semibold text-gray-900">Results</h2>
-          {loading && <p className="mt-2 text-gray-600">Scoring candidates…</p>}
+          <h2 className="text-xl font-semibold text-slate-100">Results</h2>
+          {loading && <p className="mt-2 text-slate-400">Scoring candidates…</p>}
           {!loading && results.length === 0 && !error && (
-            <p className="mt-2 text-gray-600">No results yet. Try requesting recommendations.</p>
+            <p className="mt-2 text-slate-500">No results yet. Try requesting recommendations.</p>
           )}
           {!loading && results.length > 0 && (
             <ul className="mt-4 grid gap-2">
               {results.map((r, idx) => (
                 <li
                   key={`${r.player}-${idx}`}
-                  className="rounded-xl border bg-white px-4 py-3"
+                  className="rounded-2xl border border-white/5 bg-slate-900/70 px-4 py-4 shadow-lg"
                 >
                   <div className="flex items-center gap-3">
                     <PlayerAvatar name={r.player} photoUrl={r.photo_url} />
-                    <p className="font-medium text-gray-900">{idx + 1}. {r.player}</p>
+                    <p className="font-medium text-slate-100">{idx + 1}. {r.player}</p>
                   </div>
                   {r.explanation && <ExplanationCard explanation={r.explanation} />}
                 </li>
@@ -149,6 +179,13 @@ export default function HomePage() {
             </ul>
           )}
         </section>
+        ) : (
+          <ClusterOverview
+            loading={clusterLoading}
+            error={clusterError}
+            data={clusterData}
+          />
+        )}
       </div>
     </main>
   );
@@ -164,17 +201,17 @@ function FeatureList({ title, items, variant }: FeatureListProps) {
   if (!items || items.length === 0) return null;
   return (
     <div>
-      <p className="text-sm font-semibold text-gray-900">{title}</p>
-      <ul className="mt-1 flex flex-col gap-2 text-sm text-gray-700">
+      <p className="text-sm font-semibold text-slate-200">{title}</p>
+      <ul className="mt-1 flex flex-col gap-2 text-sm text-slate-200">
         {items.map((feat) => (
           <li
             key={`${title}-${feat.feature}`}
-            className="rounded-lg bg-white/70 px-3 py-2 shadow-sm"
+            className="rounded-lg bg-slate-900/80 px-3 py-2 ring-1 ring-white/10"
           >
-            <p className="font-medium text-gray-900">
+            <p className="font-medium text-slate-100">
               {describeFeature(feat.feature, feat.weight, variant)}
             </p>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-slate-400">
               Impact: {feat.weight >= 0 ? "+" : ""}
               {feat.weight.toFixed(2)}
             </p>
@@ -191,16 +228,26 @@ type ExplanationCardProps = {
 
 function ExplanationCard({ explanation }: ExplanationCardProps) {
   if (!explanation) return null;
-  const { error, top_user_features, top_item_features } = explanation;
+  const { error, top_user_features, top_item_features, team_cluster_image, player_cluster_image } = explanation;
 
   return (
-    <div className="mt-3 rounded-lg bg-gray-50 px-3 py-2 text-sm text-gray-700">
+    <div className="mt-3 rounded-xl bg-slate-900/80 px-4 py-3 text-sm text-slate-200 ring-1 ring-white/10">
       {error ? (
-        <p className="text-red-600">Explanation unavailable: {error}</p>
+        <p className="text-rose-400">Explanation unavailable: {error}</p>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2">
-          <FeatureList title="Team fit drivers" items={top_user_features} variant="user" />
-          <FeatureList title="Player traits" items={top_item_features} variant="item" />
+        <div className="grid gap-6 sm:grid-cols-2">
+          <div className="space-y-3">
+            <FeatureList title="Team fit drivers" items={top_user_features} variant="user" />
+            {team_cluster_image && (
+              <ClusterImage label="Team cluster" src={team_cluster_image} />
+            )}
+          </div>
+          <div className="space-y-3">
+            <FeatureList title="Player traits" items={top_item_features} variant="item" />
+            {player_cluster_image && (
+              <ClusterImage label="Player cluster" src={player_cluster_image} />
+            )}
+          </div>
         </div>
       )}
     </div>
@@ -223,7 +270,7 @@ function PlayerAvatar({ name, photoUrl }: PlayerAvatarProps) {
     .toUpperCase();
 
   return (
-    <div className="h-16 w-16 flex items-center justify-center rounded-xl bg-gray-100 ring-1 ring-gray-200 overflow-hidden">
+    <div className="h-16 w-16 flex items-center justify-center rounded-2xl bg-slate-800 ring-1 ring-white/10 overflow-hidden">
       {photoUrl && !failed ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
@@ -235,6 +282,130 @@ function PlayerAvatar({ name, photoUrl }: PlayerAvatarProps) {
       ) : (
         <span className="text-sm font-semibold text-gray-600">{initials}</span>
       )}
+    </div>
+  );
+}
+
+type ClusterImageProps = {
+  label: string;
+  src: string;
+};
+
+function ClusterImage({ label, src }: ClusterImageProps) {
+  return (
+    <div>
+      <p className="text-xs uppercase tracking-wide text-slate-400 mb-1">{label}</p>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={src}
+        alt={label}
+        className="w-full rounded-lg border border-white/10 bg-slate-900 object-contain"
+      />
+    </div>
+  );
+}
+
+type ClusterOverviewProps = {
+  loading: boolean;
+  error: string | null;
+  data: { player?: ClusterSummaryRecord[]; team?: ClusterSummaryRecord[] };
+};
+
+function ClusterOverview({ loading, error, data }: ClusterOverviewProps) {
+  return (
+    <section className="mt-8 space-y-8">
+      <div>
+        <h2 className="text-xl font-semibold text-slate-100">Cluster Overview</h2>
+        <p className="text-slate-400 text-sm mt-1">
+          Dominant clusters per era with population counts.
+        </p>
+      </div>
+      {loading && <p className="text-slate-400">Loading cluster data…</p>}
+      {error && <p className="text-rose-400">{error}</p>}
+      {!loading && !error && (
+        <div className="space-y-6">
+          <ClusterSummaryCard
+            title="Player clusters"
+            kind="player"
+            records={data.player}
+          />
+          <ClusterSummaryCard
+            title="Team clusters"
+            kind="team"
+            records={data.team}
+          />
+        </div>
+      )}
+    </section>
+  );
+}
+
+type ClusterSummaryCardProps = {
+  title: string;
+  kind: "player" | "team";
+  records?: ClusterSummaryRecord[];
+};
+
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://127.0.0.1:8000";
+
+function ClusterSummaryCard({ title, kind, records }: ClusterSummaryCardProps) {
+  if (!records || records.length === 0) {
+    return (
+      <div className="rounded-2xl border border-white/5 bg-slate-900/70 px-4 py-4 shadow-lg">
+        <p className="text-slate-300 text-sm">{title}: no data</p>
+      </div>
+    );
+  }
+  const maxCount = Math.max(...records.map((r) => r.count));
+  const eras = Array.from(new Set(records.map((r) => r.era)));
+
+  const imageMap: Record<string, string> = {};
+  eras.forEach((era) => {
+    const slug = era.replace(/ /g, "_");
+    imageMap[era] = `${API_BASE}/static/cluster/${kind === "player" ? "player" : "team"}_pca_${slug}.png`;
+  });
+
+  return (
+    <div className="rounded-2xl border border-white/5 bg-slate-900/70 px-4 py-4 shadow-lg space-y-6">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold text-slate-100">{title}</h3>
+      </div>
+      {eras.map((era) => {
+        const eraClusters = records.filter((r) => r.era === era);
+        return (
+          <div key={era} className="space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="font-semibold text-slate-200">{era}</p>
+              {imageMap[era] && (
+                <a
+                  href={imageMap[era]}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-xs text-indigo-300 hover:text-indigo-200"
+                >
+                  View PCA
+                </a>
+              )}
+            </div>
+            <div className="space-y-2">
+              {eraClusters.map((cluster) => (
+                <div key={cluster.cluster_label} className="space-y-1">
+                  <div className="flex items-center justify-between text-xs text-slate-300">
+                    <span>{cluster.cluster_label}</span>
+                    <span>{cluster.count}</span>
+                  </div>
+                  <div className="h-2 rounded-full bg-slate-800 overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-indigo-500"
+                      style={{ width: `${(cluster.count / maxCount) * 100}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

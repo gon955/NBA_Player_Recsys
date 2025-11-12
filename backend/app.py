@@ -2,11 +2,12 @@ import sys, os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
-from fastapi import FastAPI 
+from fastapi import FastAPI, Request, HTTPException
 from helper import load_models
 from inference import recommend_for_user, get_roster_for_team, models, interactions
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 app = FastAPI(title="NBA Recommender API")
 
 app.add_middleware(
@@ -16,6 +17,9 @@ app.add_middleware(
     allow_methods=["*"],  
     allow_headers=["*"],
 )
+static_dir = os.path.join(os.path.dirname(__file__), "static")
+if os.path.isdir(static_dir):
+    app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
 @app.get("/teams")
 def get_team_seasons():
@@ -44,18 +48,41 @@ def serialize_feature_list(entries):
         for name, weight in entries
     ]
 
-def serialize_explanation(expl: dict | None):
+def serialize_explanation(expl: dict | None, base_url: str):
     if not expl:
         return None
     if "error" in expl:
         return {"error": expl["error"]}
+    top_user = serialize_feature_list(expl.get("top_user_features", []))
+    top_item = serialize_feature_list(expl.get("top_item_features", []))
     return {
         "score_total": expl.get("score_total"),
         "user_bias": expl.get("user_bias"),
         "item_bias": expl.get("item_bias"),
-        "top_user_features": serialize_feature_list(expl.get("top_user_features", [])),
-        "top_item_features": serialize_feature_list(expl.get("top_item_features", [])),
+        "top_user_features": top_user,
+        "top_item_features": top_item,
+        "team_cluster_image": cluster_image_for(top_user, "team", base_url),
+        "player_cluster_image": cluster_image_for(top_item, "player", base_url),
     }
+
+def cluster_image_for(feature_list, kind: str, base_url: str):
+    if not feature_list:
+        return None
+    prefix = "tcluster=" if kind == "team" else "pcluster="
+    for entry in feature_list:
+        feat = entry.get("feature", "")
+        if feat.startswith(prefix):
+            label = feat.split("=", 1)[1]
+            slug = label.lower().replace(" ", "_")
+            return f"{base_url}/static/cluster/{kind}_{slug}.png"
+    return None
+
+@app.get("/cluster-summary/{kind}")
+def cluster_summary(kind: str):
+    if kind not in {"player", "team"}:
+        raise HTTPException(status_code=400, detail="kind must be 'player' or 'team'")
+    records = read_cluster_counts(kind)
+    return {"kind": kind, "clusters": records}
 
 def player_photo_url(raw_item_id: str | None):
     if not raw_item_id:
@@ -66,7 +93,7 @@ def player_photo_url(raw_item_id: str | None):
     return f"https://www.basketball-reference.com/req/202106291/images/players/{player_id}.jpg"
 
 @app.post("/recommendations")
-def get_recommendations(req: RecommendRequest):
+def get_recommendations(req: RecommendRequest, request: Request):
     if req.era not in models:
         return {"error": f"Era '{req.era}' not found in trained models."}
     
@@ -103,6 +130,7 @@ def get_recommendations(req: RecommendRequest):
     except Exception as e:
         print(f"[ERROR] Unexpected error during recommendation: {e}")
         return {"error": str(e)}
+    base_url = str(request.base_url).rstrip("/")
     return {
         "user": req.user_id,
         "era": req.era,
@@ -111,7 +139,7 @@ def get_recommendations(req: RecommendRequest):
                 "player": rec.get("player"),
                 "score": float(rec.get("score", 0.0)),
                 "photo_url": player_photo_url(rec.get("raw_item_id")),
-                "explanation": serialize_explanation(rec.get("explanation")),
+                "explanation": serialize_explanation(rec.get("explanation"), base_url),
             }
             for rec in recs
         ]
@@ -124,3 +152,11 @@ def get_recommendations(req: RecommendRequest):
 
 def root():
     return {"message": "NBA Player Recommender API running"}
+def read_cluster_counts(kind: str):
+    filename = "player_cluster_counts.csv" if kind == "player" else "team_cluster_counts.csv"
+    path = os.path.join(static_dir, "cluster", filename)
+    if not os.path.exists(path):
+        raise HTTPException(status_code=404, detail=f"{kind.capitalize()} cluster counts not found")
+    import pandas as pd
+    df = pd.read_csv(path)
+    return df.to_dict(orient="records")
