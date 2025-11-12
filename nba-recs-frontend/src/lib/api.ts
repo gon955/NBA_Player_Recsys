@@ -15,6 +15,8 @@ export type RecommendationExplanation = {
   item_bias?: number;
   top_user_features?: FeatureContribution[];
   top_item_features?: FeatureContribution[];
+  team_cluster_image?: string | null;
+  player_cluster_image?: string | null;
   error?: string;
 } | null;
 
@@ -28,6 +30,17 @@ export type Recommendation = {
 export type RecommendResponse = 
     | { user: string; era: string; recommendations: Recommendation[] }
     | { error: string};
+
+export type ClusterSummaryRecord = {
+  era: string;
+  cluster_label: string;
+  count: number;
+};
+
+export type ClusterSummaryResponse = {
+  kind: "player" | "team";
+  clusters: ClusterSummaryRecord[];
+};
 
 const BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://127.0.0.1:8000";
 
@@ -47,4 +60,22 @@ export async function getRecommendations(payload: RecommendPayload, signal?: Abo
   const data = (await res.json()) as RecommendResponse;
   if ("error" in data) throw new Error(data.error);
   return data;
+}
+
+async function fetchClusterSummary(kind: "player" | "team") {
+  const res = await fetch(`${BASE}/cluster-summary/${kind}`);
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(text || `Failed to fetch ${kind} clusters`);
+  }
+  const data = (await res.json()) as ClusterSummaryResponse;
+  return data.clusters;
+}
+
+export async function getClusterSummaries() {
+  const [player, team] = await Promise.all([
+    fetchClusterSummary("player"),
+    fetchClusterSummary("team"),
+  ]);
+  return { player, team };
 }
