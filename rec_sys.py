@@ -12,6 +12,16 @@ def era_of(season):
     if 2016 <= season:         return "2016-present"
     return None
 
+def display_map_for_era(era: str) -> dict[str, str]:
+    era_stints = stints.loc[stints["era"] == era, ["player_id","season"]].copy()
+    era_stints["item_id"] = era_stints["player_id"].astype(str) + "_" + era_stints["season"].astype(str)
+    era_stints["player_name"] = era_stints["player_id"].map(name_map)
+    era_stints["label"] = era_stints["player_name"].fillna("Unknown Player") \
+                          + " (" + era_stints["season"].astype(str) + ")"
+    # Deduplicate in case of multiple rows for same item_id
+    era_stints = era_stints.drop_duplicates("item_id")
+    return dict(zip(era_stints["item_id"].astype(str), era_stints["label"].astype(str)))
+
 TEAM_CANON = {
     # simple, unambiguous
     "ATL": "Atlanta Hawks", "BOS": "Boston Celtics", "BKN": "Brooklyn Nets", "BRK": "Brooklyn Nets", "NJN": "New Jersey Nets",
@@ -23,7 +33,7 @@ TEAM_CANON = {
     "GSW": "Golden State Warriors", "POR": "Portland Trail Blazers", "UTA": "Utah Jazz", "DEN": "Denver Nuggets",
     "MIN": "Minnesota Timberwolves", "OKC": "Oklahoma City Thunder", "MEM": "Memphis Grizzlies",
     "NOP": "New Orleans Pelicans", "NOH": "New Orleans Hornets", "NOK": "New Orleans/Oklahoma City Hornets","SEA": "Seattle SuperSonics",
-    "VAN": "Vancouver Grizzlies", "WSB": "Washington Bullets","CHH": "Charlotte Hornets",
+    "VAN": "Vancouver Grizzlies", "WSB": "Washington Bullets","CHH": "Charlotte Hornets", "CHO": "Charlotte Hornets",
     # multi-team markers handled separately
     "2TM": None, "3TM": None, "4TM": None, "5TM": None
 }
@@ -31,29 +41,41 @@ def canonical_team(abbr: str, season: int):
     if pd.isna(abbr):
         return np.nan
     a = str(abbr).strip()
-    # Season-dependent edge cases
-    if a == "CHA":
-        # 2005–2014 Bobcats, 2014–present Hornets
-        return "Charlotte Bobcats" if 2005 <= season <= 2014 else "Charlotte Hornets"
+    if a in {"CHH", "CHO"}:
+        return "Charlotte Hornets"
     if a in {"NOK", "NOH"}:
         if season in (2006, 2007):
             return "New Orleans/Oklahoma City Hornets"
         elif 2002 <= season <= 2013:
             return "New Orleans Hornets"
-        # Pelicans begin 2013-14 (season=2014 in your schema)
-        # 'NOP' handled via TEAM_CANON as "New Orleans Pelicans"
         return "New Orleans Hornets"
-    return TEAM_CANON.get(a, a)  # fall back to itself if unknown
+    if a == "CHA":
+        return "Charlotte Bobcats"
+    return TEAM_CANON.get(a, a)
 
 def norm_str(x):
     return np.nan if pd.isna(x) else str(x).strip()
 
 
 players = pd.read_csv("master_clustered.csv")
-teams   = pd.read_csv("master_team_clustered.csv")
+players = players[players["g"] > 35]
+
+teams = pd.read_csv("master_team_clustered.csv")
+
 adv_raw = pd.read_csv("data/Advanced.csv")
 
-adv_raw = adv_raw[adv_raw["g"] > 20]
+name_map = (
+    adv_raw.loc[:, ["player_id", "player"]]
+        .dropna()
+        .drop_duplicates("player_id", keep="last") 
+        .set_index("player_id")["player"]
+        .to_dict()
+)
+
+
+
+adv_raw = adv_raw[adv_raw["g"] > 35]
+adv_raw = adv_raw[~adv_raw["team"].isin(["2TM", "3TM", "4TM", "5TM"])]
 
 players["team_full"] = [
     canonical_team(abbr, int(season)) for abbr, season in zip(players["team_per100"], players["season"])
@@ -75,7 +97,7 @@ stints = (
                 ["team","season","player_id","mp"]]
            .groupby(["team","season","player_id"], as_index=False)["mp"].sum()
 )
-stints = stints[~stints["team"].isin(["2TM","3TM","4TM","5TM"])]
+#stints = stints[~stints["team"].isin(["2TM","3TM","4TM","5TM"])]
 stints["team_full"] = [
     canonical_team(abbr, int(season)) for abbr, season in zip(stints["team"], stints["season"])
 ]
@@ -223,7 +245,6 @@ def build_lightfm_for_era(era,epochs, no_components, loss):
     )
     print(f"[{era}] built feature matrices: U={ufeat.shape} V={ifeat.shape}", flush=True)
 
-    # Model – tune per era
     model = LightFM(
         no_components=no_components,  
         loss=loss,        
@@ -246,24 +267,8 @@ def build_lightfm_for_era(era,epochs, no_components, loss):
     p10  = precision_at_k(model, inter_mat, k=10, user_features=ufeat, item_features=ifeat, num_threads=1).mean()
     print(f"[{era}] train AUC={auc:.3f}  P@10={p10:.3f}", flush=True)
     
-    pmap = (
-    players[players["era"] == era]
-    .assign(item_id=lambda d: d["player_id"].astype(str) + "_" + d["season"].astype(str))
-    .set_index("item_id")["player"]
-    .dropna()
-    .to_dict()
-)
 
-    smap = (
-        stints[stints["era"] == era]
-        .assign(item_id=lambda d: d["player_id"].astype(str) + "_" + d["season"].astype(str))
-        .merge(players[["player_id", "player"]], on="player_id", how="left")
-        .assign(player=lambda d: d["player"].fillna("Unknown Player"))
-        .set_index("item_id")["player"]
-        .to_dict()
-    )
-
-    display_map = {**smap, **pmap}
+    display_map = display_map_for_era(era)
 
     
     
@@ -278,6 +283,6 @@ for era in ["1999-2007","2008-2015","2016-present"]:
         model=model,ds=ds,ufeat=ufeat,ifeat=ifeat,items=items,display_map=display_map
     )
     
-save_models(models,display_map, path="models_all.joblib")
+save_models(models, path="models_all.joblib")
     
 
