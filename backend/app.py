@@ -38,9 +38,27 @@ class RecommendRequest(BaseModel):
     k: int = 10
     
 
+def serialize_feature_list(entries):
+    return [
+        {"feature": name, "weight": weight}
+        for name, weight in entries
+    ]
+
+def serialize_explanation(expl: dict | None):
+    if not expl:
+        return None
+    if "error" in expl:
+        return {"error": expl["error"]}
+    return {
+        "score_total": expl.get("score_total"),
+        "user_bias": expl.get("user_bias"),
+        "item_bias": expl.get("item_bias"),
+        "top_user_features": serialize_feature_list(expl.get("top_user_features", [])),
+        "top_item_features": serialize_feature_list(expl.get("top_item_features", [])),
+    }
+
 @app.post("/recommendations")
 def get_recommendations(req: RecommendRequest):
-    # Ensure the era exists
     if req.era not in models:
         return {"error": f"Era '{req.era}' not found in trained models."}
     
@@ -65,7 +83,8 @@ def get_recommendations(req: RecommendRequest):
             req.user_id,
             k=req.k,
             exclude_items=exclude_items,
-            disp=disp
+            disp=disp,
+            explain=True,
         )
         print(f"[INFO] Got {len(recs)} recommendations.")
         if len(recs) > 0:
@@ -80,8 +99,12 @@ def get_recommendations(req: RecommendRequest):
         "user": req.user_id,
         "era": req.era,
         "recommendations": [
-            {"player": label, "score": float(score)}
-            for label, score in recs
+            {
+                "player": rec.get("player"),
+                "score": float(rec.get("score", 0.0)),
+                "explanation": serialize_explanation(rec.get("explanation")),
+            }
+            for rec in recs
         ]
     }
 

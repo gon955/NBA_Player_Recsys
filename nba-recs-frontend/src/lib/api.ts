@@ -4,7 +4,25 @@ export type RecommendPayload = {
     k?: number;
 };
 
-export type Recommendation = { player: string; score: number};
+export type FeatureContribution = {
+  feature: string;
+  weight: number;
+};
+
+export type RecommendationExplanation = {
+  score_total?: number;
+  user_bias?: number;
+  item_bias?: number;
+  top_user_features?: FeatureContribution[];
+  top_item_features?: FeatureContribution[];
+  error?: string;
+} | null;
+
+export type Recommendation = {
+  player: string;
+  score: number;
+  explanation?: RecommendationExplanation;
+};
 
 export type RecommendResponse = 
     | { user: string; era: string; recommendations: Recommendation[] }
