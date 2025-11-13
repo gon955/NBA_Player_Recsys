@@ -14,7 +14,7 @@ This project delivers an end-to-end NBA roster recommender powered by LightFM co
 Create and activate a Python environment (conda or venv) and install dependencies:
 
 ```bash
-pip install -r requirements.txt
+  pip install pandas numpy scipy lightfm scikit-learn matplotlib seaborn fastapi uvicorn joblib
 ```
 
 Ensure Node.js ≥ 18 is available for the Next.js app.
