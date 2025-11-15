@@ -71,7 +71,7 @@ name_map = (
 
 
 
-adv_raw = adv_raw[adv_raw["g"] > 35]
+adv_raw = adv_raw[adv_raw["g"] > 20]
 adv_raw = adv_raw[~adv_raw["team"].isin(["2TM", "3TM", "4TM", "5TM"])]
 
 players["team_full"] = [
@@ -141,7 +141,7 @@ if "item_id" not in players:
 
 interactions = (
     stints[["user_id","item_id","mp","era"]]
-      .assign(weight=lambda d: np.log1p(d["mp"]))
+      .assign(weight=lambda d: np.sqrt(d["mp"]))
       [["user_id","item_id","weight","era"]]
       .dropna(subset=["user_id","item_id"])
       .drop_duplicates(subset=["user_id","item_id"])
@@ -325,7 +325,7 @@ from types import SimpleNamespace
 
 models = {}
 for era in ["1999-2007","2008-2015","2016-present"]:
-    model, ds, ufeat, ifeat, items, display_map = result = build_lightfm_for_era(era,30,64,"warp")
+    model, ds, ufeat, ifeat, items, display_map = result = build_lightfm_for_era(era,30,128,"bpr")
     models[era] = SimpleNamespace(
         model=model,ds=ds,ufeat=ufeat,ifeat=ifeat,items=items,display_map=display_map
     )
