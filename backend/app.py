@@ -21,6 +21,10 @@ static_dir = os.path.join(os.path.dirname(__file__), "static")
 if os.path.isdir(static_dir):
     app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
+@app.get("/health")
+def health_check():
+    return {"status": "healthy"}
+
 @app.get("/teams")
 def get_team_seasons():
     """Return a mapping of team -> available seasons based on the interactions data."""
