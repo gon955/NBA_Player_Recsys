@@ -1,0 +1,19 @@
+name: recsys
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.9.25
+  - pip
+  - pip:
+    - fastapi==0.116.1
+    - uvicorn==0.35.0
+    - pandas==1.2.4
+    - numpy==1.26.4
+    - joblib==1.5.2
+    - scikit-learn==1.6.1
+    - scipy==1.13.1
+    - matplotlib==3.9.2
+    - seaborn==0.13.2
+    - lightfm==1.17
+    - requests==2.32.5
