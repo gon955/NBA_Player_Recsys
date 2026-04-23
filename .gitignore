@@ -16,15 +16,14 @@ dist/
 # macOS
 .DS_Store
 
-# Trained models (large binary — regenerate with rec_sys.py)
-*.joblib
-
-# Generated pipeline outputs (regenerate by running the pipeline scripts)
-interactions.csv
-master_stats.csv
-master_clustered.csv
-master_team_stats.csv
-master_team_clustered.csv
-adv_stats_combined.csv
-per_100_combined.csv
-per_36_combined.csv
+# Root-level pipeline outputs (regenerate with rec_sys.py)
+# backend/models_all.joblib and backend/interactions.csv are tracked intentionally
+/models_all.joblib
+/interactions.csv
+/master_stats.csv
+/master_clustered.csv
+/master_team_stats.csv
+/master_team_clustered.csv
+/adv_stats_combined.csv
+/per_100_combined.csv
+/per_36_combined.csv
