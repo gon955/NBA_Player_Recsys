@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect,useMemo, useState } from "react";
-import { getRecommendations, Recommendation, FeatureContribution, getClusterSummaries, ClusterSummaryRecord } from "@/lib/api";
+import { getRecommendations, getTeams, Recommendation, FeatureContribution, getClusterSummaries, ClusterSummaryRecord } from "@/lib/api";
 
 function getEraFromYear(year: number): string {
   if (year >= 2016) return "2016-present";
@@ -24,8 +24,7 @@ export default function HomePage() {
   const [clusterLoading, setClusterLoading] = useState(false);
 
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/teams")
-      .then((res) => res.json())
+    getTeams()
       .then((data) => setTeams(data))
       .catch(() => setError("Failed to load team list"));
   }, []);

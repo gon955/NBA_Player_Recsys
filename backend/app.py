@@ -1,7 +1,7 @@
 import sys, os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-
+from typing import Optional
 from fastapi import FastAPI, Request, HTTPException
 from helper import load_models
 from inference import recommend_for_user, get_roster_for_team, models, interactions
@@ -10,11 +10,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 app = FastAPI(title="NBA Recommender API")
 
+_raw_origins = os.environ.get("ALLOWED_ORIGINS", "http://localhost:3000")
+_allowed_origins = [o.strip() for o in _raw_origins.split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  
+    allow_origins=_allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],  
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 static_dir = os.path.join(os.path.dirname(__file__), "static")
@@ -52,7 +55,7 @@ def serialize_feature_list(entries):
         for name, weight in entries
     ]
 
-def serialize_explanation(expl: dict | None, base_url: str):
+def serialize_explanation(expl: Optional[dict], base_url: str):
     if not expl:
         return None
     if "error" in expl:
@@ -88,7 +91,7 @@ def cluster_summary(kind: str):
     records = read_cluster_counts(kind)
     return {"kind": kind, "clusters": records}
 
-def player_photo_url(raw_item_id: str | None):
+def player_photo_url(raw_item_id: Optional[str]):
     if not raw_item_id:
         return None
     player_id = raw_item_id.split("_", 1)[0]

@@ -1,0 +1,25 @@
+# Git
+.git
+.gitignore
+
+# Python artifacts
+**/__pycache__
+**/*.pyc
+**/*.pyo
+backend/venv
+
+# Root-level data and model files (not needed in containers)
+data/
+master_stats.csv
+master_clustered.csv
+master_team_stats.csv
+master_team_clustered.csv
+adv_stats_combined.csv
+per_100_combined.csv
+per_36_combined.csv
+interactions.csv
+models_all.joblib
+
+# Frontend build artifacts
+nba-recs-frontend/node_modules
+nba-recs-frontend/.next
