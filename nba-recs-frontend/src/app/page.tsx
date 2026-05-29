@@ -2,7 +2,7 @@
 
 import { useEffect,useMemo, useState } from "react";
 import { getRecommendations, getTeams, Recommendation, FeatureContribution, getClusterSummaries, ClusterSummaryRecord } from "@/lib/api";
-
+import { askQuestion } from "@/lib/api";
 function getEraFromYear(year: number): string {
   if (year >= 2016) return "2016-present";
   if (year >= 2008) return "2008-2015";
@@ -18,10 +18,14 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<Recommendation[]>([]);
-  const [view, setView] = useState<"recommend" | "clusters">("recommend");
+  const [view, setView] = useState<"recommend" | "clusters" | "ask">("recommend");
   const [clusterData, setClusterData] = useState<{ player?: ClusterSummaryRecord[]; team?: ClusterSummaryRecord[] }>({});
   const [clusterError, setClusterError] = useState<string | null>(null);
   const [clusterLoading, setClusterLoading] = useState(false);
+  const [askQuery, setAskQuery] = useState<string>("");
+  const [askAnswer, setAskAnswer] = useState<string | null>(null);
+  const [askLoading, setAskLoading] = useState(false);
+  const [askError, setAskError] = useState<string | null>(null);
 
   useEffect(() => {
     getTeams()
@@ -60,6 +64,22 @@ export default function HomePage() {
       setLoading(false);
     }
   }
+  async function onAsk(e: React.FormEvent) {
+  e.preventDefault();
+  if (!askQuery.trim()) return;
+  setAskLoading(true);
+  setAskError(null);
+  setAskAnswer(null);
+
+  try {
+    const answer = await askQuestion(askQuery, era || undefined);
+    setAskAnswer(answer);
+  } catch (err: any) {
+    setAskError(err?.message || "Unknown error");
+  } finally {
+    setAskLoading(false);
+  }
+}
 
    return (
     <main className="min-h-screen bg-slate-950 text-slate-100">
@@ -83,6 +103,13 @@ export default function HomePage() {
             onClick={() => setView("clusters")}
           >
             Cluster Overview
+          </button>
+
+          <button
+            className={`rounded-full px-4 py-2 text-sm font-semibold transition ${view === "ask" ? "bg-indigo-500 text-white" : "bg-slate-800 text-slate-300"}`}
+            onClick={() => setView("ask")}
+          >
+            Ask Question
           </button>
         </div>
 
@@ -178,12 +205,49 @@ export default function HomePage() {
             </ul>
           )}
         </section>
-        ) : (
+        ) : view === "clusters" ? (
           <ClusterOverview
             loading={clusterLoading}
             error={clusterError}
             data={clusterData}
           />
+        ) : (
+          <section className="mt-8">
+            <h2 className="text-xl font-semibold text-slate-100">Ask About the Data</h2>
+            <p className="text-slate-400 text-sm mt-1">
+              Ask natural language questions about players, teams, and archetypes.
+            </p>
+            <form
+              onSubmit={onAsk}
+              className="mt-4 grid gap-4 rounded-2xl bg-slate-900/70 p-5 shadow-lg border border-white/5"
+            >
+              <div className="grid gap-1">
+                <label className="text-sm font-medium text-slate-200">Your question</label>
+                <textarea
+                  className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100 focus:border-indigo-400 focus:outline-none resize-none"
+                  rows={3}
+                  placeholder="e.g. Who were the most efficient big men in the 1999-2007 era?"
+                  value={askQuery}
+                  onChange={(e) => setAskQuery(e.target.value)}
+                />
+              </div>
+              <div className="flex gap-3 items-center">
+                <button
+                  disabled={!askQuery.trim() || askLoading}
+                  className="rounded-xl bg-indigo-500 hover:bg-indigo-400 px-4 py-2 text-white font-semibold disabled:opacity-40"
+                >
+                  {askLoading ? "Thinking…" : "Ask"}
+                </button>
+                {askError && <span className="text-sm text-rose-400">{askError}</span>}
+              </div>
+            </form>
+            {askAnswer && (
+              <div className="mt-6 rounded-2xl border border-white/5 bg-slate-900/70 px-5 py-4 shadow-lg">
+                <p className="text-sm font-semibold text-slate-300 mb-2">Answer</p>
+                <p className="text-slate-100 whitespace-pre-wrap leading-relaxed">{askAnswer}</p>
+              </div>
+            )}
+          </section>
         )}
       </div>
     </main>
@@ -481,3 +545,4 @@ function formatValue(value: string) {
   if (!value) return "unknown";
   return value.replace(/_/g, " ");
 }
+

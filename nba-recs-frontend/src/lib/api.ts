@@ -85,3 +85,16 @@ export async function getClusterSummaries() {
   ]);
   return { player, team };
 }
+
+export async function askQuestion(query: string, era?: string): Promise<string> {
+  const res = await fetch(`${BASE}/ask`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ query, era: era || null, n_results: 10 }),
+  });
+  if (!res.ok) throw new Error("Failed to get answer");
+  const data = await res.json();
+  return data.answer;
+}

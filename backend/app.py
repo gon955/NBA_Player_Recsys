@@ -8,6 +8,7 @@ from inference import recommend_for_user, get_roster_for_team, models, interacti
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from rag import ask as rag_ask
 app = FastAPI(title="NBA Recommender API")
 
 _raw_origins = os.environ.get("ALLOWED_ORIGINS", "http://localhost:3000")
@@ -167,3 +168,17 @@ def read_cluster_counts(kind: str):
     import pandas as pd
     df = pd.read_csv(path)
     return df.to_dict(orient="records")
+
+class AskRequest(BaseModel):
+    query: str
+    era: Optional[str] = None
+    n_results: int = 10
+
+@app.post("/ask")
+def ask(request: AskRequest):
+    try:
+        answer = rag_ask(request.query, request.era, request.n_results)
+        return {"query": request.query,"era": request.era, "answer": answer}
+    except Exception as e:
+        print(f"[ERROR] RAG ask failed: {e}")
+        return HTTPException(status_code=500, detail=str(e))
