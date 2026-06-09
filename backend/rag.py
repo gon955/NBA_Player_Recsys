@@ -1,5 +1,5 @@
 import chromadb
-from sentence_transformers import SentenceTransformer
+from fastembed import TextEmbedding
 from openai import OpenAI
 
 import os
@@ -7,15 +7,15 @@ import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # client = chromadb.PersistentClient(path="./chroma_db")
-print(f"CWD: {os.getcwd()}")
-print(f"./chroma_db exists: {os.path.exists('./chroma_db')}")
-print(f"Files in CWD: {os.listdir('.')}")
+# print(f"CWD: {os.getcwd()}")
+# print(f"./chroma_db exists: {os.path.exists('./chroma_db')}")
+# print(f"Files in CWD: {os.listdir('.')}")
 
 client = chromadb.PersistentClient(path=os.path.join(os.path.dirname(os.path.abspath(__file__)), "chroma_db"))
 players_col = client.get_collection("nba_players")
 teams_col = client.get_collection("nba_teams")
 
-embedder = SentenceTransformer("all-MiniLM-L6-v2",device="cpu")
+embedder = TextEmbedding("BAAI/bge-small-en-v1.5", device="cpu")
 
 llm = OpenAI(
     base_url="https://api.groq.com/openai/v1",
@@ -23,7 +23,7 @@ llm = OpenAI(
 )
 
 def retrieve(query: str, era: str = None, n_results:int = 5):
-    query_embedding = embedder.encode(query).tolist()
+    query_embedding = list(embedder.embed([query]))[0].tolist()
     
     where = {"era": era} if era else None
 
