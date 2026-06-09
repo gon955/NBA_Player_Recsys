@@ -5,7 +5,6 @@ from openai import OpenAI
 import os
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-client = chromadb.PersistentClient(path=os.path.join(BASE_DIR, "chroma_db"))
 
 client = chromadb.PersistentClient(path="./chroma_db")
 players_col = client.get_collection("nba_players")
@@ -14,8 +13,8 @@ teams_col = client.get_collection("nba_teams")
 embedder = SentenceTransformer("all-MiniLM-L6-v2",device="cpu")
 
 llm = OpenAI(
-    base_url="http://localhost:11434/v1",
-    api_key = "ollama"
+    base_url="https://api.groq.com/openai/v1",
+    api_key=os.environ.get("GROQ_API_KEY")
 )
 
 def retrieve(query: str, era: str = None, n_results:int = 5):
@@ -56,7 +55,7 @@ QUESTION: {query}
 """
 
     response = llm.chat.completions.create(
-        model="llama3.1:8b",  # swap to llama3.2:3b if 8b doesn't fit
+        model="llama-3.1-8b-instant", 
         messages=[{"role": "user", "content": prompt}],
         max_tokens=1000,
     )
@@ -66,7 +65,7 @@ QUESTION: {query}
 # ── test it ──────────────────────────────────────────────────
 if __name__ == "__main__":
     test_questions = [
-        "If Stephen Curry were to not be on the 2015 warriors, how would that team have done in the 2015 season?",
+    "Which players in the early 2000s era would no longer be considered a great three point shooter in the modern era?",
     ]
 
     for q in test_questions:
