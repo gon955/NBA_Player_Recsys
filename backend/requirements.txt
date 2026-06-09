@@ -7,4 +7,4 @@ scikit-learn==1.6.1
 lightfm==1.17
 chromadb==1.5.9
 openai==2.38.0
-fastembed==0.1.0
+fastembed==0.7.4
