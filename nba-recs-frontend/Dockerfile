@@ -21,4 +21,4 @@ COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 
 EXPOSE 3000
-CMD ["sh", "-c", "node server.js -p ${PORT:-3000}"]
+CMD ["sh", "-c", "HOST=0.0.0.0 node server.js -p ${PORT:-3000}"]
