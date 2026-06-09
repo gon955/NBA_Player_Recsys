@@ -7,6 +7,10 @@ import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # client = chromadb.PersistentClient(path="./chroma_db")
+print(f"CWD: {os.getcwd()}")
+print(f"./chroma_db exists: {os.path.exists('./chroma_db')}")
+print(f"Files in CWD: {os.listdir('.')}")
+
 client = chromadb.PersistentClient(path=os.path.join(os.path.dirname(os.path.abspath(__file__)), "chroma_db"))
 players_col = client.get_collection("nba_players")
 teams_col = client.get_collection("nba_teams")
