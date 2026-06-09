@@ -6,7 +6,8 @@ import os
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-client = chromadb.PersistentClient(path="./chroma_db")
+# client = chromadb.PersistentClient(path="./chroma_db")
+client = chromadb.PersistentClient(path=os.path.join(os.path.dirname(os.path.abspath(__file__)), "chroma_db"))
 players_col = client.get_collection("nba_players")
 teams_col = client.get_collection("nba_teams")
 
