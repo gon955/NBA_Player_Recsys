@@ -58,8 +58,8 @@ export default function HomePage() {
     try {
       const data = await getRecommendations({ era: eraVal, user_id: userKey, k });
       setResults(data.recommendations);
-    } catch (err: any) {
-      setError(err?.message || "Unknown error");
+    } catch (err: unknown) {
+      setError((err as Error)?.message || "Unknown error");
     } finally {
       setLoading(false);
     }
@@ -74,8 +74,8 @@ export default function HomePage() {
   try {
     const answer = await askQuestion(askQuery, era || undefined);
     setAskAnswer(answer);
-  } catch (err: any) {
-    setAskError(err?.message || "Unknown error");
+  } catch (err: unknown) {
+    setAskError((err as Error)?.message || "Unknown error");
   } finally {
     setAskLoading(false);
   }
