@@ -1,6 +1,6 @@
 import chromadb
 from fastembed import TextEmbedding
-from openai import OpenAI
+import boto3
 
 import os
 
@@ -19,19 +19,13 @@ teams_col = client.get_collection("nba_teams")
 
 embedder = TextEmbedding("BAAI/bge-small-en-v1.5", device="cpu")
 
-# Built lazily on first use: instantiating OpenAI() with no key raises immediately,
-# so doing it at import turned a missing GROQ_API_KEY into an import-time crash —
-# which took down every consumer, including compare.py (which never calls the LLM).
-_llm = None
+_bedrock = None
 
-def get_llm() -> OpenAI:
-    global _llm
-    if _llm is None:
-        _llm = OpenAI(
-            base_url="https://api.groq.com/openai/v1",
-            api_key=os.environ.get("GROQ_API_KEY"),
-        )
-    return _llm
+def get_llm():
+    global _bedrock
+    if _bedrock is None:
+        _bedrock = boto3.client("bedrock-runtime" , region_name = "us-west-2")
+    return _bedrock
 
 # Phrases that signal a "who plays like X" style question. Chroma retrieval alone
 # answers these poorly (its embeddings encode roster co-occurrence, not style —
@@ -93,25 +87,30 @@ def ask(query: str, era: str = None, n_results:int = 10):
     if comp_docs:
         context += "\n\n" + "\n\n".join(comp_docs)
 
-    prompt = f"""You are an NBA analyst assistant with access to 25+ years of basketball data.
-Answer the following question using ONLY the player and team data provided below.
-Do NOT mention any players, teams, or statistics that are not explicitly named in the data below.
-If a player is not in the data, do not reference them at all — not even as an example.
-Do not invent statistics or rankings. Only cite what is explicitly in the data.
+    prompt = f"""You are an NBA analyst assistant working ONLY from the data provided below.
+
+RULES:
+1. Use ONLY the player and team data provided. Do not use outside knowledge.
+2. Do not name any player, team, or statistic that is not explicitly written in the data below — not even as an example or comparison.
+3. Do not invent, estimate, or infer any number. If a specific figure needed to answer (e.g. three-point attempts) is not present in the data, state plainly that the data does not contain it and do not compute around the gap.
+4. If the data is insufficient to answer the question, say so directly: "The provided data does not contain enough information to answer this." Refusing to answer is a CORRECT response when the data is missing — do not manufacture an analysis to fill the gap.
+5. Do not compute averages, rankings, or comparisons unless every value you use is explicitly in the data.
 
 DATA:
 {context}
 
 QUESTION: {query}
+
+Answer using only the rules above. Cite specific values from the data to support each claim.
 """
 
-    response = get_llm().chat.completions.create(
-        model="llama-3.1-8b-instant", 
-        messages=[{"role": "user", "content": prompt}],
-        max_tokens=1000,
+    response = get_llm().converse(
+        modelId = "amazon.nova-lite-v1:0",
+        messages=[{"role": "user", "content": [{"text": prompt}]}],
+        inferenceConfig={"maxTokens": 1000, "temperature": 0.2},
     )
 
-    return response.choices[0].message.content
+    return response["output"]["message"]["content"][0]["text"]
 
 # ── test it ──────────────────────────────────────────────────
 if __name__ == "__main__":
