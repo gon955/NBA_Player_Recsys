@@ -17,9 +17,11 @@ dist/
 .DS_Store
 
 # Root-level pipeline outputs (regenerate with rec_sys.py)
-# backend/models_all.joblib and backend/interactions.csv are tracked intentionally
+# The runtime copies backend/models_all.joblib, backend/interactions.csv and
+# backend/data/players.csv are tracked intentionally (they ship in the container).
 /models_all.joblib
 /interactions.csv
+/players.csv
 /master_stats.csv
 /master_clustered.csv
 /master_team_stats.csv
