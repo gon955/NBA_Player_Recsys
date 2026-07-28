@@ -13,8 +13,15 @@ dist/
 # Claude Code
 .claude/
 
+# Editor
+.vscode/
+
 # macOS
 .DS_Store
+
+# One-off scratch: benchmarked Bedrock models to pick the one wired into rag.py.
+# Kept locally, not part of the deployed app.
+backend/compare.py
 
 # Root-level pipeline outputs (regenerate with rec_sys.py)
 # The runtime copies backend/models_all.joblib, backend/interactions.csv and
