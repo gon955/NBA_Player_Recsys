@@ -5,8 +5,18 @@ services:
       dockerfile: backend/Dockerfile
     ports:
       - "8000:8000"
+    # The image ships a Lambda entrypoint (awslambdaric). For local dev, override
+    # it back to uvicorn so the same image serves plain HTTP on :8000.
+    entrypoint: []
+    command: ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
     environment:
-      - GROQ_API_KEY=${GROQ_API_KEY}
+      # GROQ_API_KEY is gone with the move to Bedrock — the LLM call now
+      # authenticates as an IAM principal (a role in Lambda, these locally).
+      - AWS_REGION=${AWS_REGION:-us-west-2}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3000}
 
   frontend:
     build:

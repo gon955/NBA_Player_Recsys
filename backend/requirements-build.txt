@@ -1,0 +1,5 @@
+# Build/offline-pipeline deps — deliberately NOT installed into the Lambda image.
+# chromadb is used only by embed_chunks.py (builds the store) and
+# export_index.py (dumps it to data/index/ for the numpy runtime index).
+-r requirements.txt
+chromadb==1.5.9
