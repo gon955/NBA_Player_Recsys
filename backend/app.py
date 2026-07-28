@@ -181,4 +181,4 @@ def ask(request: AskRequest):
         return {"query": request.query,"era": request.era, "answer": answer}
     except Exception as e:
         print(f"[ERROR] RAG ask failed: {e}")
-        return HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e))
