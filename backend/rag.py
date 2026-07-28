@@ -1,25 +1,22 @@
-import chromadb
-from fastembed import TextEmbedding
-import boto3
-
 import os
 
+import boto3
+
 from similarity import similar_players, resolve_player
+from vector_index import get_index
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# client = chromadb.PersistentClient(path="./chroma_db")
-# print(f"CWD: {os.getcwd()}")
-# print(f"./chroma_db exists: {os.path.exists('./chroma_db')}")
-# print(f"Files in CWD: {os.listdir('.')}")
-
-client = chromadb.PersistentClient(path=os.path.join(os.path.dirname(os.path.abspath(__file__)), "chroma_db"))
-players_col = client.get_collection("nba_players")
-teams_col = client.get_collection("nba_teams")
-
-embedder = TextEmbedding("BAAI/bge-small-en-v1.5", device="cpu")
+EMBED_MODEL = "BAAI/bge-small-en-v1.5"
+# Where the Dockerfile bakes the ONNX weights. fastembed otherwise caches into
+# tempfile.gettempdir() — i.e. /tmp, which does NOT survive a Lambda cold start,
+# so every cold start would re-pull ~65 MB from HuggingFace (and fail outright
+# in a VPC with no NAT gateway).
+FASTEMBED_CACHE = os.environ.get("FASTEMBED_CACHE_DIR", "/opt/fastembed")
 
 _bedrock = None
+_embedder = None
+
 
 def get_llm():
     global _bedrock
@@ -27,7 +24,26 @@ def get_llm():
         _bedrock = boto3.client("bedrock-runtime" , region_name = "us-west-2")
     return _bedrock
 
-# Phrases that signal a "who plays like X" style question. Chroma retrieval alone
+
+def get_embedder():
+    """Lazily construct the embedder. Kept out of import for the same reason as
+    similarity.get_model(): a cold start that only serves /health or
+    /recommendations should not pay to build an ONNX session it never uses."""
+    global _embedder
+    if _embedder is None:
+        from fastembed import TextEmbedding  
+
+        if os.path.isdir(FASTEMBED_CACHE):
+            _embedder = TextEmbedding(
+                EMBED_MODEL, device="cpu",
+                cache_dir=FASTEMBED_CACHE, local_files_only=True,
+            )
+        else:
+            # Dev fallback: no baked cache, so allow the normal download path.
+            _embedder = TextEmbedding(EMBED_MODEL, device="cpu")
+    return _embedder
+
+# Phrases that signal a "who plays like X" style question. Vector retrieval alone
 # answers these poorly (its embeddings encode roster co-occurrence, not style —
 # see similarity.py), so on these we inject stat-profile nearest neighbors.
 _SIMILARITY_CUES = (
@@ -51,23 +67,13 @@ def format_comps(name: str, comps: list) -> str:
     return header + "\n" + "\n".join(lines)
 
 def retrieve(query: str, era: str = None, n_results:int = 5):
-    query_embedding = list(embedder.embed([query]))[0].tolist()
+    query_embedding = list(get_embedder().embed([query]))[0]
 
-    where = {"era": era} if era else None
-
-    player_results = players_col.query(
-        query_embeddings=[query_embedding],
-        n_results=n_results,
-        where=where
-    )
-    teams_results = teams_col.query(
-        query_embeddings=[query_embedding],
-        n_results=n_results,
-        where=where
-    )
+    player_docs = get_index("nba_players").query(query_embedding, n_results, era)
+    team_docs = get_index("nba_teams").query(query_embedding, n_results, era)
 
     # Third retrieval signal: stat-profile nearest neighbors, fired only for
-    # "who plays like X" questions (the Chroma embeddings answer those poorly).
+    # "who plays like X" questions (the chunk embeddings answer those poorly).
     comp_docs = []
     if is_similarity_query(query):
         name = resolve_player(query)
@@ -76,7 +82,7 @@ def retrieve(query: str, era: str = None, n_results:int = 5):
             if comps:
                 comp_docs = [format_comps(name, comps)]
 
-    return player_results['documents'][0], teams_results['documents'][0], comp_docs
+    return player_docs, team_docs, comp_docs
 
 def ask(query: str, era: str = None, n_results:int = 10):
     player_docs, team_docs, comp_docs = retrieve(query, era, n_results)

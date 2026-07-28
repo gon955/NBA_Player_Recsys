@@ -7,6 +7,12 @@
 **/*.pyc
 **/*.pyo
 backend/venv
+.vscode
+
+# The Chroma store (69 MB) is build-time only — export_index.py turns it into
+# backend/data/index/, which is what ships. Keeping it out of the build context
+# avoids paying for it in ECR pull time on every cold start.
+backend/chroma_db
 
 # Root-level data and model files (not needed in containers)
 data/

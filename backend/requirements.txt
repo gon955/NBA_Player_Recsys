@@ -1,10 +1,14 @@
+# Runtime deps only. chromadb is NOT here on purpose — it is build-time only
+# (see requirements-build.txt and export_index.py). openai is gone with the
+# move to Bedrock; boto3 replaces it and was previously unpinned.
 fastapi==0.116.1
 uvicorn==0.35.0
+mangum==0.19.0
+awslambdaric==3.1.1
+boto3==1.42.97
 pandas==1.2.4
 numpy==1.26.4
 joblib==1.5.2
 scikit-learn==1.6.1
 lightfm==1.17
-chromadb==1.5.9
-openai==2.38.0
 fastembed==0.7.4
