@@ -1,5 +1,5 @@
 """
-stat_similarity.py — "who plays like X" via stat-profile nearest neighbors.
+similarity.py — "who plays like X" via stat-profile nearest neighbors.
  
 WHY THIS EXISTS (and why it isn't in rec_sys.py):
 The LightFM embeddings encode ROSTER CO-OCCURRENCE (team-season <-> player-season
@@ -107,7 +107,7 @@ def _typical_nn(X_n):
 def _build_model():
     if not os.path.exists(CSV_PATH):
         raise FileNotFoundError(
-            f"stat_similarity: no data file found. Looked for players.csv / "
+            f"similarity: no data file found. Looked for players.csv / "
             f"master_clustered.csv in {BASE_DIR} and {PROJECT_ROOT}. Bundle the "
             f"CSV into the deployment artifact."
         )
@@ -118,7 +118,7 @@ def _build_model():
     missing_required = [c for c in required if c not in df.columns]
     if missing_required:
         raise ValueError(
-            f"stat_similarity: {os.path.basename(CSV_PATH)} is missing required "
+            f"similarity: {os.path.basename(CSV_PATH)} is missing required "
             f"columns {missing_required} — cannot build the style model."
         )
 
@@ -138,7 +138,7 @@ def _build_model():
     cols = [c for c in STYLE_COLS if c in df.columns]
     missing = set(STYLE_COLS) - set(cols)
     if missing:
-        logger.info("stat_similarity: missing columns skipped: %s", sorted(missing))
+        logger.info("similarity: missing columns skipped: %s", sorted(missing))
 
     # Z-score WITHIN era so each value means "vs. this player's era peers".
     # NaN percentages (e.g. 3P% with zero attempts) become 0 = era-average,
