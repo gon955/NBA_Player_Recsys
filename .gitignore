@@ -23,6 +23,14 @@ dist/
 # Kept locally, not part of the deployed app.
 backend/compare.py
 
+# Build-time only: embed_chunks.py writes it, export_index.py turns it into
+# backend/data/index/ (which IS tracked, and is what ships in the image).
+# Regenerate with `python embed_chunks.py`.
+backend/chroma_db/
+
+# AWS CLI scratch output
+/response.json
+
 # Root-level pipeline outputs (regenerate with rec_sys.py)
 # The runtime copies backend/models_all.joblib, backend/interactions.csv and
 # backend/data/players.csv are tracked intentionally (they ship in the container).
