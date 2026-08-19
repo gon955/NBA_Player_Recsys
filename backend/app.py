@@ -2,8 +2,8 @@ import sys, os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from typing import Optional
+import pandas as pd
 from fastapi import FastAPI, Request, HTTPException
-from helper import load_models
 from inference import recommend_for_user, get_roster_for_team, models, interactions
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
@@ -155,17 +155,15 @@ def get_recommendations(req: RecommendRequest, request: Request):
 
 
 @app.get("/")
-
-
-
 def root():
     return {"message": "NBA Player Recommender API running"}
+
+
 def read_cluster_counts(kind: str):
     filename = "player_cluster_counts.csv" if kind == "player" else "team_cluster_counts.csv"
     path = os.path.join(static_dir, "cluster", filename)
     if not os.path.exists(path):
         raise HTTPException(status_code=404, detail=f"{kind.capitalize()} cluster counts not found")
-    import pandas as pd
     df = pd.read_csv(path)
     return df.to_dict(orient="records")
 

@@ -20,19 +20,14 @@ ENV PATH="/opt/venv/bin:$PATH"
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Bake the embedding weights into the image. Without this, fastembed caches into
-# tempfile.gettempdir() — /tmp, which is wiped between cold starts — so every
-# cold start would re-download ~65 MB from HuggingFace, adding ~3s and failing
-# outright if the function runs in a VPC with no NAT gateway.
+# Bake the embedding weights into the image; see "Cold-start behavior" in the README.
 RUN python -c "from fastembed import TextEmbedding; \
     TextEmbedding('BAAI/bge-small-en-v1.5', cache_dir='/opt/fastembed')"
 
 # ---- runtime ---------------------------------------------------------------
 FROM python:3.9-slim
 
-# lightfm's extension is compiled against OpenMP in the builder stage, so the
-# runtime needs libgomp even though it does not need the compiler. Without it
-# `import lightfm` dies with "libgomp.so.1: cannot open shared object file".
+# lightfm needs libgomp1 at runtime; see "Image layout" in the README.
 RUN apt-get update && apt-get install -y --no-install-recommends libgomp1 \
     && rm -rf /var/lib/apt/lists/*
 
@@ -45,10 +40,6 @@ ENV PATH="/opt/venv/bin:$PATH" \
 
 WORKDIR /app
 COPY backend/ .
-
-# chroma_db is excluded via .dockerignore, not deleted here: Chroma opens SQLite
-# read-write and a Lambda image is read-only outside /tmp. data/index/ holds the
-# exported vectors that vector_index.py searches instead.
 
 ENTRYPOINT ["python", "-m", "awslambdaric"]
 CMD ["lambda_handler.handler"]
