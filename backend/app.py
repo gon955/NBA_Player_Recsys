@@ -81,7 +81,10 @@ def cluster_image_for(feature_list, kind: str, base_url: str):
         feat = entry.get("feature", "")
         if feat.startswith(prefix):
             label = feat.split("=", 1)[1]
-            slug = label.lower().replace(" ", "_")
+            # Must match slugify() in player_cluster.py / team_cluster.py, which
+            # generated these PNGs. Dropping the "/" replacement leaves it in the
+            # URL as a path separator, 404-ing labels like "Stretch 4 / Shooting Wing".
+            slug = label.lower().replace(" ", "_").replace("/", "-")
             return f"{base_url}/static/cluster/{kind}_{slug}.png"
     return None
 
