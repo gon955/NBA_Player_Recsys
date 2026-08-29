@@ -1,36 +1,65 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# nba-recs-frontend
 
-## Getting Started
+Next.js 15 (App Router) + React 19 + Tailwind 4 UI for the NBA Player Recommender.
+It is a thin client over the FastAPI backend in `../backend` — all data fetching
+happens in the browser, there are no server components or server actions.
 
-First, run the development server:
+## Layout
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+```
+src/
+  app/
+    layout.tsx      root layout, metadata, Geist fonts
+    page.tsx        state + composition only; no markup beyond the shell
+    globals.css     Tailwind import and the dark palette tokens
+  components/
+    ViewTabs            Recommend / Clusters / Ask tab switcher
+    RecommendForm       team -> season -> k form
+    RecommendResults    ranked player cards
+    ExplanationCard     per-recommendation LightFM feature breakdown
+    PlayerAvatar        headshot with initials fallback
+    ClusterImage        cluster PNG served off the backend's /static mount
+    ClusterOverview     per-era cluster population bars + PCA links
+    AskPanel            RAG question box with an era filter
+  lib/
+    api.ts          API_BASE, typed fetch wrappers, response types
+    era.ts          the three model eras and the season -> era mapping
+    features.ts     raw LightFM feature strings -> plain English
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Running locally
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm install
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Open http://localhost:3000. The backend must be running — see the root README.
 
-## Learn More
+## Configuration
 
-To learn more about Next.js, take a look at the following resources:
+`NEXT_PUBLIC_API_BASE` selects the backend origin and defaults to
+`http://127.0.0.1:8000`. Set it in `.env.local` for local dev.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Note it is read at **build** time. The Docker image takes it as
+`ARG NEXT_PUBLIC_API_BASE`, so a containerized frontend must be rebuilt — not
+just restarted with a new env var — to point at a different backend.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The backend's CORS allowlist (`ALLOWED_ORIGINS`) must include whatever origin
+this app is served from; it defaults to `http://localhost:3000`.
 
-## Deploy on Vercel
+## Backend contract
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Call | Endpoint |
+|---|---|
+| `getTeams` | `GET /teams` → `{ "<team name>": [seasons] }` |
+| `getRecommendations` | `POST /recommendations` `{era, user_id, k}` |
+| `getClusterSummaries` | `GET /cluster-summary/{player,team}` |
+| `askQuestion` | `POST /ask` `{query, era, n_results}` |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+`user_id` is `"<team name>_<season>"` (e.g. `Boston Celtics_2018`), and `era` is
+derived from the season by `getEraFromYear`.
+
+`POST /recommendations` reports domain errors (unknown era, team not in the
+model) as HTTP **200** with an `{error}` body, so `api.ts` checks the payload
+rather than the status code.
