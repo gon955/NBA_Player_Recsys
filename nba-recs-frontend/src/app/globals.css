@@ -1,8 +1,11 @@
 @import "tailwindcss";
 
+/* The UI commits to a single dark palette (see the slate-950 shell in page.tsx),
+   so there is no light/dark token swap here — just the app-wide ground and the
+   Geist faces loaded in layout.tsx. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #020617; /* slate-950 */
+  --foreground: #f1f5f9; /* slate-100 */
 }
 
 @theme inline {
@@ -12,15 +15,8 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
 }
