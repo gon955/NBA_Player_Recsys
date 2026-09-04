@@ -1,13 +1,36 @@
 
-from helper import TEAM_CANON, canonical_team, era_of
-
 import pandas as pd
 
+from helper import canonical_team
 
 players      = pd.read_csv("players.csv")
 teams        = pd.read_csv("teams.csv")
 stints       = pd.read_csv("stints.csv")
 interactions = pd.read_csv("interactions.csv")
+
+
+_POS_SHARE_LABELS = [
+    ("share_pg", "PG"), ("share_sg", "SG"), ("share_sf", "SF"),
+    ("share_pf", "PF"), ("share_c", "C"),
+]
+
+
+def position_phrase(row):
+    """Measured minute shares per spot, falling back to the `pos` label.
+
+    rec_sys.py merges pg_percent…c_percent from the play-by-play file into
+    players.csv. Saying "68% SG, 29% SF" tells the retriever a combo wing; the
+    old `pos` string said "SG" and made him indistinguishable from a pure guard.
+    Spots under 10% are dropped as rounding noise.
+    """
+    parts = [
+        (label, row[col]) for col, label in _POS_SHARE_LABELS
+        if col in row and pd.notna(row[col]) and row[col] >= 0.10
+    ]
+    if not parts:
+        return f"played {row['pos']}"
+    parts.sort(key=lambda p: -p[1])
+    return "played " + ", ".join(f"{share:.0%} {label}" for label, share in parts)
 
 
 # Player Chunks
@@ -23,7 +46,7 @@ def row_to_chunk(row):
     )[0]
 
     return (
-        f"{row['player']} in the {row['season']} season ({row['era']}) played {row['pos']} "
+        f"{row['player']} in the {row['season']} season ({row['era']}) {position_phrase(row)} "
         f"for {team_name} at age {row['age']} (age group: {age_bin}). "
         f"Archetype: {row['cluster_label']} (cluster {row['cluster']}, within {row['era']} era peers) — LightFM item feature pcluster={row['cluster_label']}. "
         f"Scoring: {row['pts_per_100_poss']:.1f} pts per 100 on "
