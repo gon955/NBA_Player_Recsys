@@ -35,6 +35,14 @@ backend/compare.py
 # Regenerate with `python embed_chunks.py`.
 backend/chroma_db/
 
+# pbpstats extension: fetch_pbpstats.py's gzipped API response cache and the
+# bulk CSVs it renders from it (~445 MB; pbpstats_lineups.csv alone is 302 MB,
+# past GitHub's 100 MB per-file limit). Build-time inputs only — no committed
+# artifact depends on them, and re-running fetch_pbpstats.py rebuilds them.
+data/pbpstats_raw/
+data/pbpstats_lineups.csv
+data/pbpstats_players.csv
+
 # AWS CLI scratch output
 /response.json
 
