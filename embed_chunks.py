@@ -2,6 +2,7 @@ import os
 
 import chromadb
 from fastembed import TextEmbedding
+
 from chunk_data import build_all_chunks
 
 CHROMA_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "backend", "chroma_db")
@@ -17,7 +18,7 @@ client = chromadb.PersistentClient(path=CHROMA_PATH)
 for name in ["nba_players", "nba_teams"]:
     try:
         client.delete_collection(name)
-    except:
+    except Exception:
         pass
 
 player_collection = client.create_collection("nba_players")

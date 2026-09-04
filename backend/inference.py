@@ -1,10 +1,11 @@
-import numpy as np
-import scipy.sparse as sp
-from helper import load_models
-from types import SimpleNamespace
-import pandas as pd
 import os
+from types import SimpleNamespace
+
+import numpy as np
+import pandas as pd
 import scipy.sparse as sp
+
+from helper import load_models
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODEL_PATH = os.path.join(BASE_DIR, "models_all.joblib")

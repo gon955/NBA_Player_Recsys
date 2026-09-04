@@ -1,0 +1,43 @@
+# Tool configuration only. This project is not packaged/installed — the backend
+# ships as a container (backend/Dockerfile) and the root scripts run in place —
+# so there is deliberately no [project] table and no build-system here.
+
+[tool.ruff]
+# Pinned to the interpreter the whole stack is constrained to; see the README.
+# lightfm==1.17 does not build on 3.11+, which is why this is not higher.
+target-version = "py39"
+line-length = 100
+
+extend-exclude = [
+    "nba-recs-frontend",
+    "Clusters to Recommendations_files",
+    "data",
+    # Local work-in-progress, intentionally not committed yet: its build_panel /
+    # attach_covariates / explode stubs are empty `def`s, so the file does not
+    # parse. Listed here so `ruff check .` stays green while it is being written;
+    # drop this line when the finished file lands.
+    "lineup_features.py",
+]
+
+[tool.ruff.lint]
+# Explicit rather than inherited: ruff's default selection has widened across
+# releases, so pinning the set keeps a ruff upgrade from turning CI red on its
+# own. E/F are pycodestyle+pyflakes, I is import sorting, B is bugbear.
+select = ["E4", "E7", "E9", "F", "I", "B"]
+
+[tool.ruff.lint.isort]
+# The backend imports its siblings as top-level modules (`from inference import
+# ...`) because the container makes backend/ the working directory. Without this
+# they get sorted into the third-party block, which is wrong and churny.
+known-first-party = [
+    "app", "chunk_data", "cluster_naming", "helper", "inference",
+    "rag", "similarity", "vector_index",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q --cov=backend --cov-report=term-missing"
+
+[tool.coverage.run]
+# compare.py is gitignored one-off scratch (see .gitignore), not shipped code.
+omit = ["backend/compare.py"]

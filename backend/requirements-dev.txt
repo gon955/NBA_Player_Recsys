@@ -1,0 +1,11 @@
+# Test/lint deps — deliberately NOT installed into the Lambda image, for the
+# same reason chromadb isn't (see requirements-build.txt). The Dockerfile
+# installs requirements.txt only.
+#
+# httpx is not used by any application code: starlette's TestClient is a thin
+# wrapper over it, so importing fastapi.testclient requires it to be present.
+-r requirements.txt
+pytest==8.4.2
+pytest-cov==7.1.0
+httpx==0.28.1
+ruff==0.16.6

@@ -10,6 +10,13 @@ build/
 dist/
 *.egg-info/
 
+# Test / lint tool caches and coverage output
+.pytest_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
 # Claude Code
 .claude/
 
