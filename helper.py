@@ -1,7 +1,8 @@
-import pandas as pd
+from types import SimpleNamespace
+
 import joblib
 import numpy as np
-from types import SimpleNamespace
+import pandas as pd
 
 TOTAL_MARKERS = {"2TM","3TM","4TM","5TM","6TM","TOT"}
 
@@ -57,9 +58,12 @@ def load_models(path="models.joblib"):
 
 
 def era_of(season):
-    if 1999 <= season <= 2007: return "1999-2007"
-    if 2008 <= season <= 2015: return "2008-2015"
-    if 2016 <= season:         return "2016-present"
+    if 1999 <= season <= 2007:
+        return "1999-2007"
+    if 2008 <= season <= 2015:
+        return "2008-2015"
+    if 2016 <= season:
+        return "2016-present"
     return None
 
 

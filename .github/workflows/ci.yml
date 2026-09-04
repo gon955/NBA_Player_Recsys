@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  # PRs targeting main only. A `push` trigger would re-run CI on every commit to
+  # a feature branch, which is the same code the PR run already covers.
+  # Note GitHub tests the *merge result* (refs/pull/N/merge), not the branch tip,
+  # so this checks main-with-your-changes — which is what you actually care about.
+  pull_request:
+    branches: [main]
+  # Post-merge safety net: two PRs can each pass alone and still break main
+  # together (a semantic conflict). This fires only on merges to main, never on
+  # feature-branch commits.
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: ruff
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+      # ruff is a standalone binary — no need to build the heavy runtime deps
+      # just to lint, so this job finishes in seconds. Version is pinned to
+      # match backend/requirements-dev.txt; a ruff upgrade should be a
+      # deliberate commit, not a surprise red build.
+      - run: pip install ruff==0.16.6
+      - run: ruff check --output-format=github .
+
+  test:
+    name: pytest (py3.9)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          # 3.9 is not a preference: lightfm==1.17 does not build on 3.11+,
+          # which is what pins the whole stack. See the README.
+          python-version: '3.9'
+          cache: pip
+          cache-dependency-path: |
+            backend/requirements.txt
+            backend/requirements-dev.txt
+
+      # lightfm ships as an sdist and compiles on install; libgomp is needed at
+      # import time. Mirrors the two apt layers in backend/Dockerfile.
+      - name: Install build toolchain for lightfm
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends gcc libc6-dev libgomp1
+
+      - run: pip install -r backend/requirements-dev.txt
+
+      # The suite imports backend/app.py, which loads models_all.joblib and
+      # interactions.csv from the repo. Both are tracked, so a plain checkout is
+      # enough — no artifact download, and no AWS credentials (rag.py builds its
+      # Bedrock client lazily, and nothing under tests/ reaches /ask).
+      - run: pytest --cov-report=xml
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-xml
+          path: coverage.xml
+          if-no-files-found: ignore

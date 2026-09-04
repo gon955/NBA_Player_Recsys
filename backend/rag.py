@@ -2,7 +2,7 @@ import os
 
 import boto3
 
-from similarity import similar_players, resolve_player
+from similarity import resolve_player, similar_players
 from vector_index import get_index
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -31,7 +31,7 @@ def get_embedder():
     /recommendations should not pay to build an ONNX session it never uses."""
     global _embedder
     if _embedder is None:
-        from fastembed import TextEmbedding  
+        from fastembed import TextEmbedding
 
         if os.path.isdir(FASTEMBED_CACHE):
             _embedder = TextEmbedding(
