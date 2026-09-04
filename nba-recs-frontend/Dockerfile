@@ -8,6 +8,9 @@ RUN npm ci
 COPY nba-recs-frontend/ .
 ARG NEXT_PUBLIC_API_BASE
 ENV NEXT_PUBLIC_API_BASE=$NEXT_PUBLIC_API_BASE
+# next.config.ts defaults to a static export for Cloudflare Pages; this image
+# serves the app from a Node server instead, so ask for the standalone build.
+ENV NEXT_OUTPUT=standalone
 RUN npm run build
 
 FROM node:20-alpine AS runner
