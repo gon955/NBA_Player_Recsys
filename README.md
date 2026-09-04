@@ -73,7 +73,8 @@ uvicorn app:app --reload
 
 Environment variables:
 
-- `ALLOWED_ORIGINS` — comma-separated CORS origins, defaults to `http://localhost:3000`.
+- `ALLOWED_ORIGINS` — comma-separated exact CORS origins, defaults to `http://localhost:3000`.
+- `ALLOWED_ORIGIN_REGEX` — optional pattern matched against the request origin, for origins that cannot be enumerated (Cloudflare Pages preview deployments). Unset by default, which keeps exact matching only. Starlette `fullmatch()`es it, so it must cover the whole origin.
 - `FASTEMBED_CACHE_DIR` — where the embedding weights live, defaults to `/opt/fastembed` (set by the Dockerfile).
 
 ### 5. Frontend (Next.js)
@@ -114,10 +115,19 @@ Cloudflare Pages settings:
 | Output directory | `out` |
 | Environment variable | `NEXT_PUBLIC_API_BASE` = the Lambda Function URL |
 
+Pick framework preset **None**, not "Next.js" — that preset builds for the Workers runtime via `@cloudflare/next-on-pages`, which is for apps needing SSR and would fight the static export. `.nvmrc` pins Node 20 because Next 15 requires `>=18.18` and the default build image has shipped older.
+
 Two things that will bite otherwise:
 
 - `NEXT_PUBLIC_API_BASE` is baked in at build time, so changing the backend URL means a rebuild, not just a settings change.
-- Add the Pages origin to `ALLOWED_ORIGINS` on the Lambda, or the browser blocks every call on CORS.
+- Add the Pages origin to `ALLOWED_ORIGINS` on the Lambda, or the browser blocks every call on CORS. Both variables are read at import, so changing them takes effect on the next cold start — no image rebuild or ECR push.
+- Preview deployments each get their own origin (`<hash>.<project>.pages.dev`), which an exact-match list cannot cover, and `allow_credentials=True` rules out a `"*"` wildcard because browsers reject that pair. Set `ALLOWED_ORIGIN_REGEX` to cover them:
+
+  ```
+  ALLOWED_ORIGIN_REGEX=https://([a-z0-9-]+\.)?nba-recs\.pages\.dev
+  ```
+
+- Do not also configure CORS on the Lambda Function URL itself. It has its own CORS block, separate from the FastAPI middleware, and having both emit `Access-Control-Allow-Origin` produces a duplicate header that browsers reject.
 
 Cluster PCA plots and archetype images are still served from the Lambda's `/static/` mount, so each one is an invocation. Copying `backend/static/cluster/` into `nba-recs-frontend/public/` would serve them from the CDN instead — note the backend also returns absolute `/static/` URLs inside recommendation explanations (`cluster_image_for` in `app.py`), so that move is a coordinated change on both sides.
 
