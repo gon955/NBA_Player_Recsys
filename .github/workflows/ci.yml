@@ -34,39 +34,43 @@ jobs:
       - run: ruff check --output-format=github .
 
   test:
-    name: pytest (py3.9)
+    name: pytest (in the Lambda image)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - uses: docker/setup-buildx-action@v3
+
+      # Tests run inside the image rather than on the runner. lightfm==1.17 is an
+      # sdist that compiles against numpy at build time and does not install
+      # cleanly on a bare runner; containerising is the project's answer to that,
+      # so CI exercises the same compiled dependency set the runtime uses.
+      # The `test` stage reuses the `deps` layer, so it never downloads the
+      # fastembed weights the production image bakes in.
+      - name: Build the test image
+        uses: docker/build-push-action@v6
         with:
-          # 3.9 is not a preference: lightfm==1.17 does not build on 3.11+,
-          # which is what pins the whole stack. See the README.
-          python-version: '3.9'
-          cache: pip
-          cache-dependency-path: |
-            backend/requirements.txt
-            backend/requirements-dev.txt
-
-      # lightfm ships as an sdist and compiles on install; libgomp is needed at
-      # import time. Mirrors the two apt layers in backend/Dockerfile.
-      - name: Install build toolchain for lightfm
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends gcc libc6-dev libgomp1
-
-      - run: pip install -r backend/requirements-dev.txt
+          context: .
+          file: backend/Dockerfile
+          target: test
+          load: true
+          tags: nba-recsys-test:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       # The suite imports backend/app.py, which loads models_all.joblib and
       # interactions.csv from the repo. Both are tracked, so a plain checkout is
-      # enough — no artifact download, and no AWS credentials (rag.py builds its
-      # Bedrock client lazily, and nothing under tests/ reaches /ask).
-      - run: pytest --cov-report=xml
+      # enough, and no AWS credentials are needed (rag.py builds its Bedrock
+      # client lazily, and nothing under tests/ reaches /ask).
+      - name: Run pytest
+        run: |
+          mkdir -p ci-out
+          docker run --rm -v "$PWD/ci-out:/out" nba-recsys-test:ci \
+            pytest --cov-report=xml:/out/coverage.xml
 
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: coverage-xml
-          path: coverage.xml
+          path: ci-out/coverage.xml
           if-no-files-found: ignore
