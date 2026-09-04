@@ -17,6 +17,7 @@ services:
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3000}
+      - ALLOWED_ORIGIN_REGEX=${ALLOWED_ORIGIN_REGEX:-}
 
   frontend:
     build:

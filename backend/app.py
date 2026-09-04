@@ -19,9 +19,18 @@ app = FastAPI(title="NBA Recommender API")
 _raw_origins = os.environ.get("ALLOWED_ORIGINS", "http://localhost:3000")
 _allowed_origins = [o.strip() for o in _raw_origins.split(",") if o.strip()]
 
+# Cloudflare Pages gives every preview deployment its own origin
+# (<hash>.<project>.pages.dev), so an exact-match list can only ever cover the
+# production URL. Widening it to "*" is not an option either: browsers reject
+# a wildcard origin combined with allow_credentials. So previews need a pattern.
+# Starlette checks allow_origins first, then fullmatch()es this regex, and
+# leaving it unset keeps the previous exact-match-only behaviour.
+_origin_regex = os.environ.get("ALLOWED_ORIGIN_REGEX") or None
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_allowed_origins,
+    allow_origin_regex=_origin_regex,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
