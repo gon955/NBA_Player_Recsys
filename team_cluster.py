@@ -1,18 +1,17 @@
 import os
-import pandas as pd
-from helper import season_totals
-from sklearn.pipeline import Pipeline
-from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import StandardScaler
-from sklearn.cluster import KMeans
-import joblib
+
+import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
+import seaborn as sns
+from sklearn.cluster import KMeans
+from sklearn.decomposition import PCA
+from sklearn.impute import SimpleImputer
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+
+from cluster_naming import label_clusters
 from helper import assign_era
-
-
-def map_cluster_label(row):
-    return cluster_labels_map.get(row["era"], {}).get(int(row["cluster"]), f"c{row['cluster']}")
-
 
 DATA_DIR = "data"
 team_per_100_stats = pd.read_csv(os.path.join(DATA_DIR, "Team Stats Per 100 Poss.csv"))
@@ -39,47 +38,34 @@ master_team["era"] = master_team["season"].apply(assign_era)
 
 
 team_features = [
+    # NOTE: exact duplicates removed — each is recoverable from the kept set
+    # with R^2 >= 0.998, so including it double-counted that axis:
+    #   pts_per_100_poss  -> o_rtg          (1.0000, same quantity)
+    #   n_rtg             -> o_rtg - d_rtg  (1.0000, exact by definition)
+    #   x3pa_per_100_poss -> x3p_ar         (0.9996)
+    #   e_fg_percent      -> ts_percent     (0.9997)
+    #   tov_per_100_poss  -> tov_percent    (0.9988)
+    #   fta_per_100_poss  -> ft_fga         (0.9983)
 
-    "pts_per_100_poss", "fga_per_100_poss", "x3pa_per_100_poss", "fta_per_100_poss",
-   
-    "fg_percent", "x3p_percent", "ts_percent", "e_fg_percent", "ft_percent",
-    
-    "ast_per_100_poss", "tov_per_100_poss", "tov_percent",
-   
-    "orb_percent", "drb_percent",  # or orb_per_100_poss, drb_per_100_poss
+    "fga_per_100_poss",
+
+    "fg_percent", "x3p_percent", "ts_percent", "ft_percent",
+
+    "ast_per_100_poss", "tov_percent",
+
+    "orb_percent", "drb_percent",
 
     "stl_per_100_poss", "blk_per_100_poss",
 
     "opp_e_fg_percent", "opp_tov_percent", "opp_ft_fga",
 
     "pace", "x3p_ar", "ft_fga",
-    
-    "o_rtg", "d_rtg", "n_rtg", "srs"
+
+    "o_rtg", "d_rtg", "srs"
 ]
 
-cluster_labels_map = {
-    "1999-2007": {
-        0: "Balanced",
-        1: "Defensive Grind",
-        2: "Inefficient Offense",
-        3: "High-Pace Offense",
-        4: "Rebuilder"
-    },
-    "2008-2015": {
-        0: "Balanced",
-        1: "Modern Offense",
-        2: "Iso Scorers",
-        3: "Fast & Flawed D",
-        4: "Contender"
-    },
-    "2016-present": {
-        0: "Playoff Team",
-        1: "Pace & Space",
-        2: "Rebuilder",
-        3: "Fast & Flawed D",
-        4: "Defensive Powerhouse"
-    }
-}
+# Archetype names now live in cluster_reference.json and are matched to cluster
+# CONTENT by cluster_naming.label_clusters().
 
 X = master_team[team_features]
 
@@ -99,6 +85,7 @@ K = 5
 era_models = {}
 
 cluster_labels_all = np.full(len(master_team), fill_value=-1, dtype=int)
+cluster_names_all = np.empty(len(master_team), dtype=object)
 
 for era, df_era in master_team.groupby("era", sort=False):
     idx = df_era.index
@@ -111,16 +98,22 @@ for era, df_era in master_team.groupby("era", sort=False):
     ])
     X_era_processed = preprocessor.fit_transform(X_era)
 
-    km = KMeans(n_clusters=K, random_state=89)
+    # n_init pinned — sklearn's default changed from 10 to "auto" (=1) in 1.4.
+    km = KMeans(n_clusters=K, random_state=89, n_init=10)
     labels_era = km.fit_predict(X_era_processed)
+
+    names_era, mapping, quality = label_clusters(df_era, labels_era, team_features, "team", era)
 
     # write labels back into the full array
     cluster_labels_all[idx] = labels_era
+    cluster_names_all[idx] = names_era
     era_models[era] = (preprocessor, km)
+
+    print(f"[{era}] cluster index -> archetype: {mapping}")
 
 master_team_clustered = master_team.copy()
 master_team_clustered["cluster"] = cluster_labels_all
-master_team_clustered["cluster_label"] = master_team_clustered.apply(map_cluster_label, axis=1)
+master_team_clustered["cluster_label"] = cluster_names_all
 
 CLUSTER_CARD_DIR = os.path.join("backend", "static", "cluster")
 os.makedirs(CLUSTER_CARD_DIR, exist_ok=True)
@@ -141,14 +134,6 @@ counts.to_csv(counts_path, index=False)
 
 master_team_clustered.to_csv("master_team_clustered.csv",index = False)
 
-
-import matplotlib.pyplot as plt
-import seaborn as sns
-from sklearn.decomposition import PCA
-from sklearn.manifold import TSNE
-
-
-from sklearn.decomposition import PCA
 
 TEAM_CARD_FEATURES = [
     "o_rtg",
@@ -217,7 +202,7 @@ print(cluster_profiles.T)
 
 for (era, cid), reps in master_team_clustered.groupby(["era","cluster"]):
     reps = reps.sort_values("n_rtg", ascending=False).head(15)
-    label = cluster_labels_map.get(era, {}).get(int(cid), f"c{cid}")
+    label = reps["cluster_label"].iloc[0]
     print(f"\nEra {era} — Cluster {cid} ({label}) : Representative Teams")
     cols = [
         "team","season",

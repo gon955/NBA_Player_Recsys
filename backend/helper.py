@@ -1,7 +1,8 @@
-import pandas as pd
+from types import SimpleNamespace
+
 import joblib
 import numpy as np
-from types import SimpleNamespace
+
 
 def save_models(models,path="models.joblib"):
     serial = {}

@@ -17,3 +17,10 @@ dependencies:
     - seaborn==0.13.2
     - lightfm==1.17
     - requests==2.32.5
+
+    # Dev/CI only — tests and linting. Mirrored in backend/requirements-dev.txt,
+    # which is what CI installs (it does not use conda).
+    - pytest==8.4.2
+    - pytest-cov==7.1.0
+    - httpx==0.28.1
+    - ruff==0.16.6
