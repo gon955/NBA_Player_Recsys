@@ -19,6 +19,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends gcc libc6-dev \
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
+# lightfm's setup.py compiles its C extension with `-march=native`, targeting the
+# exact CPU of whatever machine builds the image. That binary then SIGILLs (exit
+# 132) on any host missing those instructions — which is every cross-machine
+# reuse of this layer: a restored CI build cache, or an image built on a laptop
+# and run on Lambda. LIGHTFM_NO_CFLAGS is the library's own opt-out (it also
+# drops -ffast-math, whose relaxed IEEE semantics we do not want either), and
+# yields a portable baseline binary.
+ENV LIGHTFM_NO_CFLAGS=1
+
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
