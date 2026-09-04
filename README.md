@@ -84,7 +84,9 @@ npm install
 npm run dev
 ```
 
-Set `NEXT_PUBLIC_API_BASE` in `.env.local` if the backend is not on `http://127.0.0.1:8000`. Note it is read at *build* time in the Docker image (`ARG NEXT_PUBLIC_API_BASE`), so a containerized frontend must be rebuilt to point at a different backend.
+Set `NEXT_PUBLIC_API_BASE` in `.env.local` if the backend is not on `http://127.0.0.1:8000`. It is read at *build* time — baked into the bundle by `next build` — so any deployed frontend must be rebuilt to point at a different backend, whether it is the Docker image (`ARG NEXT_PUBLIC_API_BASE`) or Cloudflare Pages.
+
+`next.config.ts` emits a **static export** (`out/`) by default. Every page here is a client component and all data is fetched from the backend in the browser, so there is no server to run. The compose image needs a Node server, so its Dockerfile sets `NEXT_OUTPUT=standalone` to get the previous `output: "standalone"` behaviour back.
 
 ### 6. Both, via Docker
 
@@ -94,12 +96,32 @@ docker compose up --build
 
 Compose builds the same Lambda image used in production and overrides its entrypoint (`entrypoint: []`) so `uvicorn` serves plain HTTP on `:8000` instead of `awslambdaric`. AWS credentials are passed through from the environment for the Bedrock call.
 
-### 7. Deploy to Lambda
+### 7. Deploy the backend to Lambda
 
 Build, push to ECR, and point the `nba-recsys` function at the new image. The function runs as a container package on x86_64 with a 60 s timeout and 2048 MB — the memory matters more than it looks, since Lambda scales CPU with it and both the LightFM scoring and the ONNX embedding pass are CPU-bound.
 
 
-### 8. Tests and linting
+### 8. Deploy the frontend to Cloudflare Pages
+
+The frontend is a static bundle, so it needs no server and no AWS resources. Co-locating it with the backend would buy nothing: the browser calls the Lambda Function URL directly, so there is no server-to-server hop that being in the same region would shorten.
+
+Cloudflare Pages settings:
+
+| Setting | Value |
+| --- | --- |
+| Root directory | `nba-recs-frontend` |
+| Build command | `npm run build` |
+| Output directory | `out` |
+| Environment variable | `NEXT_PUBLIC_API_BASE` = the Lambda Function URL |
+
+Two things that will bite otherwise:
+
+- `NEXT_PUBLIC_API_BASE` is baked in at build time, so changing the backend URL means a rebuild, not just a settings change.
+- Add the Pages origin to `ALLOWED_ORIGINS` on the Lambda, or the browser blocks every call on CORS.
+
+Cluster PCA plots and archetype images are still served from the Lambda's `/static/` mount, so each one is an invocation. Copying `backend/static/cluster/` into `nba-recs-frontend/public/` would serve them from the CDN instead — note the backend also returns absolute `/static/` URLs inside recommendation explanations (`cluster_image_for` in `app.py`), so that move is a coordinated change on both sides.
+
+### 9. Tests and linting
 
 ```bash
 pytest                 # tests/ — config lives in pyproject.toml
@@ -109,7 +131,14 @@ ruff check . --fix     # apply the autofixable subset
 
 `tests/` covers the API at the route level: `tests/conftest.py` puts `backend/` on `sys.path` and builds a `TestClient` over the real `app`, which is the same import graph the container gets from `WORKDIR /app; COPY backend/ .`. Because `models_all.joblib`, `interactions.csv` and `data/index/` are tracked, the suite runs off a plain checkout with no fixtures to generate. It also needs no AWS credentials — `rag.py` constructs its Bedrock client and embedder lazily, so nothing under `tests/` reaches `/ask`.
 
-`.github/workflows/ci.yml` runs two jobs — a fast `ruff` job (the binary alone, no runtime deps) and a `pytest` job on Python 3.9 that installs `backend/requirements-dev.txt`. It triggers on pull requests targeting `main`, where GitHub tests the merge result rather than the branch tip, and on pushes to `main` as a post-merge check. Feature-branch commits do not trigger it.
+`.github/workflows/ci.yml` runs two jobs. The `ruff` job installs just the binary and finishes in seconds. The `pytest` job builds the Dockerfile's `test` stage and runs the suite **inside the image** rather than on the runner: `lightfm==1.17` is an sdist that compiles against numpy at build time and does not install cleanly on a bare runner, which is the reason the project is containerised in the first place. The `test` stage reuses the `deps` layer, so it never pays for the fastembed weights the production image bakes in.
+
+To reproduce a CI run locally:
+
+```bash
+docker build --target test -t nba-recsys-test -f backend/Dockerfile .
+docker run --rm nba-recsys-test pytest
+``` It triggers on pull requests targeting `main`, where GitHub tests the merge result rather than the branch tip, and on pushes to `main` as a post-merge check. Feature-branch commits do not trigger it.
 
 
 ## Key features
@@ -168,7 +197,7 @@ backend/
   helper.py           model (de)serialization
   data/index/         exported embeddings + metadata (shipped)
   static/cluster/     PCA plots, cluster counts
-  Dockerfile          two-stage Lambda container image
+  Dockerfile          Lambda container image: deps -> builder/test -> runtime
   requirements.txt        runtime deps
   requirements-build.txt  + chromadb, offline only
   requirements-dev.txt    + pytest/ruff, never shipped
