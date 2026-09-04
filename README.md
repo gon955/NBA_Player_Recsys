@@ -188,9 +188,11 @@ The embedding weights (`BAAI/bge-small-en-v1.5`) are **baked into the image** at
 
 ### Image layout
 
-Two build stages, so `gcc`/`libc6-dev` — needed only to compile lightfm — never reach the final image. A smaller image means less to lazy-fetch from ECR on a cold start.
+Stages are `deps` -> `builder`/`test` -> runtime, so `gcc`/`libc6-dev` — needed only to compile lightfm — never reach the final image. A smaller image means less to lazy-fetch from ECR on a cold start. `test` branches off `deps` so CI reuses the compiled dependencies without paying for the fastembed weight download.
 
 The runtime stage still installs `libgomp1`: lightfm's extension is compiled against OpenMP in the builder, so without it `import lightfm` dies with `libgomp.so.1: cannot open shared object file`.
+
+**`LIGHTFM_NO_CFLAGS=1` is set in `deps` and must stay set.** lightfm's `setup.py` otherwise compiles its extension with `-march=native`, targeting the exact CPU of the build machine. The resulting binary dies with SIGILL (exit 132) on any host missing those instructions, and nothing catches it earlier — the import succeeds and the process is killed mid-prediction. That breaks two things: a restored CI build cache, where the layer was compiled on a different runner, and any image built on one machine to run on another, which is precisely the laptop-to-Lambda path. Measured cost of the portable build is ~5% on a ~1 ms scoring call. The opt-out also drops `-ffast-math`, whose relaxed IEEE semantics are not something this project wants.
 
 
 ## Project structure
