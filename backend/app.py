@@ -1,14 +1,19 @@
-import sys, os
+import os
+import sys
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from typing import Optional
+
 import pandas as pd
-from fastapi import FastAPI, Request, HTTPException
-from inference import recommend_for_user, get_roster_for_team, models, interactions
-from pydantic import BaseModel
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
+
+from inference import get_roster_for_team, interactions, models, recommend_for_user
 from rag import ask as rag_ask
+
 app = FastAPI(title="NBA Recommender API")
 
 _raw_origins = os.environ.get("ALLOWED_ORIGINS", "http://localhost:3000")
@@ -182,4 +187,4 @@ def ask(request: AskRequest):
         return {"query": request.query,"era": request.era, "answer": answer}
     except Exception as e:
         print(f"[ERROR] RAG ask failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e

@@ -22,9 +22,10 @@ Eras are fixed at three: `1999-2007`, `2008-2015`, `2016-present` (see `era_of()
 conda env create -f environment.yml && conda activate recsys   # offline pipeline
 pip install -r backend/requirements.txt                        # backend runtime
 pip install -r backend/requirements-build.txt                  # + chromadb, for index builds only
+pip install -r backend/requirements-dev.txt                    # + pytest/ruff, for tests and linting
 ```
 
-`backend/requirements.txt` is runtime-only on purpose. `chromadb` lives in `requirements-build.txt` because it is needed to *build* the index and never to serve it — see [Vector search](#vector-search) below.
+`backend/requirements.txt` is runtime-only on purpose. `chromadb` lives in `requirements-build.txt` because it is needed to *build* the index and never to serve it — see [Vector search](#vector-search) below. Test and lint tooling is split out into `requirements-dev.txt` for the same reason: the Dockerfile installs `requirements.txt` alone, so nothing in the other two files reaches the Lambda image.
 
 Node.js ≥ 18 for the Next.js app (the frontend image uses `node:20-alpine`).
 
@@ -98,6 +99,19 @@ Compose builds the same Lambda image used in production and overrides its entryp
 Build, push to ECR, and point the `nba-recsys` function at the new image. The function runs as a container package on x86_64 with a 60 s timeout and 2048 MB — the memory matters more than it looks, since Lambda scales CPU with it and both the LightFM scoring and the ONNX embedding pass are CPU-bound.
 
 
+### 8. Tests and linting
+
+```bash
+pytest                 # tests/ — config lives in pyproject.toml
+ruff check .           # lint
+ruff check . --fix     # apply the autofixable subset
+```
+
+`tests/` covers the API at the route level: `tests/conftest.py` puts `backend/` on `sys.path` and builds a `TestClient` over the real `app`, which is the same import graph the container gets from `WORKDIR /app; COPY backend/ .`. Because `models_all.joblib`, `interactions.csv` and `data/index/` are tracked, the suite runs off a plain checkout with no fixtures to generate. It also needs no AWS credentials — `rag.py` constructs its Bedrock client and embedder lazily, so nothing under `tests/` reaches `/ask`.
+
+`.github/workflows/ci.yml` runs two jobs — a fast `ruff` job (the binary alone, no runtime deps) and a `pytest` job on Python 3.9 that installs `backend/requirements-dev.txt`. It triggers on pull requests targeting `main`, where GitHub tests the merge result rather than the branch tip, and on pushes to `main` as a post-merge check. Feature-branch commits do not trigger it.
+
+
 ## Key features
 
 - **Explainable recommendations.** Each suggestion carries its top user features (team traits), top item features (player traits), user/item biases, and matching cluster visuals.
@@ -157,6 +171,7 @@ backend/
   Dockerfile          two-stage Lambda container image
   requirements.txt        runtime deps
   requirements-build.txt  + chromadb, offline only
+  requirements-dev.txt    + pytest/ruff, never shipped
 
 data/                 raw Basketball-Reference CSVs
 player_cluster.py     player archetype clustering & visuals

@@ -1,16 +1,17 @@
 import os
-import pandas as pd
+
+import matplotlib.pyplot as plt
 import numpy as np
-from helper import season_totals
-from sklearn.pipeline import Pipeline
-from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import StandardScaler
+import pandas as pd
+import seaborn as sns
 from sklearn.cluster import KMeans
-from helper import assign_era
+from sklearn.decomposition import PCA
+from sklearn.impute import SimpleImputer
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
 
-
-def map_cluster_label(row):
-    return cluster_labels_map.get(row["era"], {}).get(int(row["cluster"]), f"c{row['cluster']}")
+from cluster_naming import label_clusters
+from helper import assign_era, season_totals
 
 per100 = pd.read_csv("data/Per 100 Poss.csv")
 
@@ -34,10 +35,15 @@ per100_comb.rename(
     inplace=True,
 )
 
-per100_comb.to_csv("per_100_combined.csv")
+# Both halves of the merge are written as build artifacts AND used in memory.
+# Reading them back from disk meant the advanced half came from whatever
+# adv_stats_combined.csv happened to be lying around (it was gitignored and
+# never written by this script), which silently truncated the data to 2004+.
+per100_comb.to_csv("per_100_combined.csv", index=False)
+adv_comb.to_csv("adv_stats_combined.csv", index=False)
 
-per100_clean = pd.read_csv("per_100_combined.csv")
-adv_clean = pd.read_csv("adv_stats_combined.csv")
+per100_clean = per100_comb
+adv_clean = adv_comb
 
 
 master = pd.merge(
@@ -69,69 +75,39 @@ master["era"] = master["season"].apply(assign_era)
 master.to_csv("master_stats.csv", index=False)
 
 features = [
-    # per-100 volume (mirrors team features)
+    # NOTE: columns that are another column in different units, or an exact
+    # linear combination of others, are deliberately excluded — they otherwise
+    # enter the distance metric twice at full weight. Each is recoverable from
+    # the kept set with R^2 >= 0.96:
+    #   e_fg_percent      -> ts_percent (0.986)
+    #   orb/drb/ast/tov_per_100_poss -> the matching _percent rates (0.96-1.00)
+    #   bpm               -> obpm + dbpm (0.9997, exact by definition)
+
+    # per-100 volume
     "pts_per_100_poss", "fga_per_100_poss", "x3pa_per_100_poss", "fta_per_100_poss",
-
-    # playmaking & handling
-    "ast_per_100_poss", "tov_per_100_poss",
-
-    # rebounding split
-    "orb_per_100_poss", "drb_per_100_poss",
 
     # events / fouls
     "stl_per_100_poss", "blk_per_100_poss", "pf_per_100_poss",
 
     # efficiency
-    "fg_percent", "x3p_percent", "ft_percent", "e_fg_percent", "ts_percent",
+    "fg_percent", "x3p_percent", "ft_percent", "ts_percent",
 
-    # usage/share style
+    # usage/share style — playmaking, handling and rebounding live here as rates
     "usg_percent", "orb_percent", "drb_percent", "ast_percent", "tov_percent",
 
-    # impact-style advanced
-    "per", "ws_48", "obpm", "dbpm", "bpm", "vorp",
+    # impact-style advanced (bpm omitted: it is obpm + dbpm)
+    "per", "ws_48", "obpm", "dbpm", "vorp",
 ]
 
-
-id_cols = ["season","player_id","player","lg","age","pos"]
-IDs = master[id_cols]
-
-cluster_labels_map = {
-    "1999-2007": {
-        0: "Playmakers",
-        1: "High-Scoring Forwards",
-        2: "Floor Spacers",
-        3: "MVP",
-        4: "Defensive Centres",
-        5: "High Volume Scorers",
-        6: "Bench Big Man",
-        7: "Stretch 4 / Shooting Wing",
-    },
-    "2008-2015": {
-        0: "Big Man Defensive Stoppers",
-        1: "Bench Guards",
-        2: "MVP",
-        3: "Floor Spacers",
-        4: "Bench Centres",
-        5: "Offensive-Minded Guards",
-        6: "Bench Power Forwards",
-        7: "High Scoring Big Man",
-    },
-    "2016-present": {
-        0: "Defense First Guards",
-        1: "Inefficient Scorers",
-        2: "Offense First Guards/Wings",
-        3: "Scoring Big Men",
-        4: "MVP",
-        5: "Defense First Big Men",
-        6: "Bench Big Men",
-        7: "Defense Minded Bench Player",
-    }
-}
+# Archetype names now live in cluster_reference.json and are matched to cluster
+# CONTENT by cluster_naming.label_clusters(). The old index-keyed map here was
+# only correct for one particular (seed, sklearn version) pair.
 
 K = 8
 era_models = {}
 master = master.reset_index(drop=True)
 cluster_labels_all = np.full(len(master), fill_value=-1, dtype=int)
+cluster_names_all = np.empty(len(master), dtype=object)
 
 for era, df_era in master.groupby("era", sort=False):
     idx = df_era.index
@@ -143,17 +119,28 @@ for era, df_era in master.groupby("era", sort=False):
     ])
     Xz = preprocessor.fit_transform(X_era)
 
-    km = KMeans(n_clusters=K, random_state=35,)
+    # n_init is pinned: sklearn's default changed from 10 to "auto" (=1) in 1.4,
+    # which silently changed the partition depending on the installed version.
+    km = KMeans(n_clusters=K, random_state=35, n_init=10)
     labels_era = km.fit_predict(Xz)
 
+    names_era, mapping, quality = label_clusters(df_era, labels_era, features, "player", era)
+
     cluster_labels_all[idx] = labels_era
+    cluster_names_all[idx] = names_era
     era_models[era] = (preprocessor, km)
+
+    print(f"[{era}] cluster index -> archetype: {mapping}")
+    if quality:
+        worst = max(quality, key=quality.get)
+        print(f"[{era}] worst reference match: cluster {worst} -> "
+              f"{mapping[worst]} (distance {quality[worst]:.2f})")
     
     
 
 master_clustered = master.copy()
 master_clustered["cluster"] = cluster_labels_all
-master_clustered["cluster_label"] = master_clustered.apply(map_cluster_label, axis=1)
+master_clustered["cluster_label"] = cluster_names_all
 
 # HAND DEFINED LABELS FOR INTERPRETATION
 
@@ -195,10 +182,6 @@ counts = (
 
 master_clustered.to_csv("master_clustered.csv", index=False)
 
-import matplotlib.pyplot as plt
-import seaborn as sns
-from sklearn.decomposition import PCA
-from sklearn.manifold import TSNE
 
 CLUSTER_CARD_DIR = os.path.join("backend", "static", "cluster")
 os.makedirs(CLUSTER_CARD_DIR, exist_ok=True)
@@ -257,7 +240,7 @@ counts.to_csv(counts_path, index=False)
 
 for (era, cid), reps in master_clustered.groupby(["era","cluster"]):
     reps = reps.sort_values("per", ascending=False).head(15)
-    label = cluster_labels_map.get(era, {}).get(int(cid), f"c{cid}")
+    label = reps["cluster_label"].iloc[0]
     print(f"\nEra {era} — Cluster {cid} ({label}) : Representative Players")
     cols = [
     "player","season",
