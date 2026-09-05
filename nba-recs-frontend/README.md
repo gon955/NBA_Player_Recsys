@@ -48,6 +48,32 @@ just restarted with a new env var — to point at a different backend.
 The backend's CORS allowlist (`ALLOWED_ORIGINS`) must include whatever origin
 this app is served from; it defaults to `http://localhost:3000`.
 
+`NEXT_PUBLIC_SITE_URL` is the canonical origin this app is served from, and
+defaults to `https://nba-recs.pages.dev`. It only feeds the link-preview
+metadata in `layout.tsx` — nothing at runtime reads it — but it has to be
+absolute and correct, because a static export has no request to infer the host
+from and crawlers reject relative `og:image` paths. Set it when deploying to a
+custom domain or when you want a preview deployment to unfurl as itself.
+
+## Link previews
+
+`layout.tsx` emits Open Graph and Twitter card tags, and `public/og.png` is the
+1200x630 preview image they point at. LinkedIn, Slack and iMessage refuse to
+build a preview at all when `og:title`, `og:description` or `og:image` is
+missing, even when the crawl itself succeeded — a bare `<title>` and
+`<meta name="description">` are not enough for them.
+
+Two things to know when changing them:
+
+- Every crawler caches aggressively. After a deploy, re-scrape the URL through
+  [LinkedIn's Post Inspector](https://www.linkedin.com/post-inspector/) before
+  concluding the tags are wrong; LinkedIn will otherwise keep serving whatever
+  it saw first for days.
+- `og:image` must resolve over plain HTTPS with no redirect and no auth.
+  Cloudflare Pages serves `public/og.png` straight from the CDN, which
+  satisfies that; pointing it at the Lambda's `/static/` mount would not, since
+  every fetch would be a cold-startable invocation.
+
 ## Backend contract
 
 | Call | Endpoint |
