@@ -87,6 +87,8 @@ npm run dev
 
 Set `NEXT_PUBLIC_API_BASE` in `.env.local` if the backend is not on `http://127.0.0.1:8000`. It is read at *build* time — baked into the bundle by `next build` — so any deployed frontend must be rebuilt to point at a different backend, whether it is the Docker image (`ARG NEXT_PUBLIC_API_BASE`) or Cloudflare Pages.
 
+`NEXT_PUBLIC_SITE_URL` is the canonical origin used to build the link-preview tags, and defaults to `https://nba-recs.pages.dev`. Set it when deploying to a custom domain — see [Link previews](#link-previews).
+
 `next.config.ts` emits a **static export** (`out/`) by default. Every page here is a client component and all data is fetched from the backend in the browser, so there is no server to run. The compose image needs a Node server, so its Dockerfile sets `NEXT_OUTPUT=standalone` to get the previous `output: "standalone"` behaviour back.
 
 ### 6. Both, via Docker
@@ -114,6 +116,7 @@ Cloudflare Pages settings:
 | Build command | `npm run build` |
 | Output directory | `out` |
 | Environment variable | `NEXT_PUBLIC_API_BASE` = the Lambda Function URL |
+| Environment variable | `NEXT_PUBLIC_SITE_URL` = the deployed origin (only if not `https://nba-recs.pages.dev`) |
 
 Pick framework preset **None**, not "Next.js" — that preset builds for the Workers runtime via `@cloudflare/next-on-pages`, which is for apps needing SSR and would fight the static export. `.nvmrc` pins Node 20 because Next 15 requires `>=18.18` and the default build image has shipped older.
 
@@ -130,6 +133,19 @@ Two things that will bite otherwise:
 - Do not also configure CORS on the Lambda Function URL itself. It has its own CORS block, separate from the FastAPI middleware, and having both emit `Access-Control-Allow-Origin` produces a duplicate header that browsers reject.
 
 Cluster PCA plots and archetype images are still served from the Lambda's `/static/` mount, so each one is an invocation. Copying `backend/static/cluster/` into `nba-recs-frontend/public/` would serve them from the CDN instead — note the backend also returns absolute `/static/` URLs inside recommendation explanations (`cluster_image_for` in `app.py`), so that move is a coordinated change on both sides.
+
+### Link previews
+
+`nba-recs-frontend/src/app/layout.tsx` emits Open Graph and Twitter card tags, and `nba-recs-frontend/public/og.png` is the 1200x630 image they point at.
+
+This matters because link unfurlers are stricter than they look. LinkedIn, Slack and iMessage refuse to render a preview at all when `og:title`, `og:description` or `og:image` is missing — the crawl succeeds, the page returns 200, and the preview is still rejected. A `<title>` and `<meta name="description">` alone, which is what Next's default `metadata` block produced here, are not enough.
+
+Two constraints shape how the tags are built:
+
+- **The URL has to be absolute and hardcoded.** Crawlers do not resolve relative `og:image` paths, and a static export has no request to infer its own host from, so the origin is baked in at build time from `NEXT_PUBLIC_SITE_URL` (via `metadataBase`) rather than discovered at runtime.
+- **The image has to be a plain, unauthenticated HTTPS fetch.** Serving it from `public/` puts it on the Cloudflare CDN, which satisfies that. Pointing `og:image` at the Lambda's `/static/` mount instead would make every crawl a cold-startable invocation.
+
+After deploying, re-scrape through [LinkedIn's Post Inspector](https://www.linkedin.com/post-inspector/) — every crawler caches the first response it saw, so a fixed page keeps unfurling with the old error until the cache is refreshed.
 
 ### 9. Tests and linting
 
@@ -169,6 +185,15 @@ The LightFM embeddings encode **roster co-occurrence** (team-season ↔ player-s
 Stats are z-scored **within era** before comparison, so every player is expressed as distance from his era's peers rather than in raw units. A 40% three-point shooter in 2003 and one in 2023 land at different z-scores, which is what makes cross-era comparison meaningful.
 
 `rag.py` fires this path only when the query matches a similarity cue ("plays like", "similar to", "in the mold of", …), then formats the results as a labeled `STAT-SIMILARITY COMPS` block the LLM can cite. When even the closest match is statistically distant, the block says so and instructs the model to hedge.
+
+### Evaluation
+
+`rec_sys.py` scores each era against two references, both on the same held-out split (3 interactions per team-season, kept out of a throwaway probe model fit for evaluation only — the served model is refit on everything afterwards):
+
+- **Train vs. held-out AUC**, side by side. Scoring a model on the matrix it was fitted to measures memorisation, not skill: that number read 0.90 for a model whose held-out AUC was 0.52.
+- **Precision@10 against a most-popular-items baseline** (`popularity_precision_at_k`). Random is the wrong reference here — rosters are dominated by high-minute players, so "recommend whoever appears most" is already a decent guess, and beating *that* is what makes the model worth training. The baseline is scored identically to `precision_at_k`: it drops each team's training items, takes the top 10 by training frequency, divides by k, and averages over team-seasons with at least one held-out interaction.
+
+Both print per era, so `python rec_sys.py` reports the lift rather than leaving it to be quoted from memory.
 
 ### Vector search
 
