@@ -306,6 +306,40 @@ user_feats = (
 )
 
 
+def popularity_precision_at_k(train_mat, test_mat, k=10):
+    """Most-popular-items Precision@k, scored exactly the way LightFM scores
+    the model: rank items by how often they appear in the training matrix,
+    drop the ones this user already has in train, and count how many of the
+    top k land in his held-out set. Divides by k and averages over users with
+    at least one test interaction, matching `precision_at_k`'s conventions so
+    the two numbers are directly comparable.
+
+    Popularity is the baseline that matters here rather than random: rosters
+    are dominated by high-minute players, so "recommend whoever appears most"
+    is already a strong guess and is what the model has to beat to be worth
+    training."""
+    pop = np.asarray(train_mat.tocsc().getnnz(axis=0)).ravel()
+    order = np.argsort(-pop, kind="stable")
+    train_csr, test_csr = train_mat.tocsr(), test_mat.tocsr()
+
+    scores = []
+    for u in range(test_csr.shape[0]):
+        rel = set(test_csr.indices[test_csr.indptr[u]:test_csr.indptr[u + 1]])
+        if not rel:
+            continue
+        seen = set(train_csr.indices[train_csr.indptr[u]:train_csr.indptr[u + 1]])
+        hits, taken = 0, 0
+        for item in order:
+            if taken == k:
+                break
+            if item in seen:
+                continue
+            taken += 1
+            hits += item in rel
+        scores.append(hits / k)
+    return float(np.mean(scores)) if scores else 0.0
+
+
 # ------------- 3) Train per era -------------
 def build_lightfm_for_era(era, epochs, no_components, loss, holdout=3, eval_seed=0):
     inter = interactions[interactions["era"] == era][["user_id","item_id","weight"]]
@@ -392,8 +426,11 @@ def build_lightfm_for_era(era, epochs, no_components, loss, holdout=3, eval_seed
     train_auc = auc_score(probe, train_mat, **ev).mean()
     test_auc = auc_score(probe, test_mat, train_interactions=train_mat, **ev).mean()
     test_p10 = precision_at_k(probe, test_mat, k=10, train_interactions=train_mat, **ev).mean()
+    pop_p10 = popularity_precision_at_k(train_mat, test_mat, k=10)
+    lift = test_p10 / pop_p10 if pop_p10 else float("nan")
     print(f"[{era}] train AUC={train_auc:.3f} | HELD-OUT AUC={test_auc:.3f} "
-          f"P@10={test_p10:.4f}", flush=True)
+          f"P@10={test_p10:.4f} | popularity P@10={pop_p10:.4f} "
+          f"| lift {lift:.2f}x", flush=True)
 
     # ---- served model: refit on every interaction ------------------------
     print(f"[{era}] starting fit (epochs={epochs})…", flush=True)
