@@ -69,34 +69,54 @@ master.rename(columns=
              }
               ,inplace=True)
 
+# Style inputs the per-100 and advanced tables don't carry: where a player's
+# shots come from, how many of them he creates himself, and where on the floor
+# he plays. Both files have a TOT row for traded players, same as the others.
+SHOT_COLS = [
+    "percent_fga_from_x0_3_range", "percent_fga_from_x3_10_range",
+    "percent_fga_from_x10_16_range", "percent_fga_from_x16_3p_range",
+    "percent_fga_from_x3p_range", "percent_assisted_x2p_fg", "percent_dunks_of_fga",
+]
+shooting = pd.read_csv("data/Player Shooting.csv")
+shooting = season_totals(shooting[(shooting["season"] >= 1999) & (shooting["mp"] > 0)])
+master = master.merge(shooting[["season", "player_id"] + SHOT_COLS],
+                      on=["season", "player_id"], how="left")
+
+POS_SHARE_COLS = ["pg_percent", "sg_percent", "sf_percent", "pf_percent", "c_percent"]
+pbp = pd.read_csv("data/Player Play By Play.csv")
+pbp = season_totals(pbp[(pbp["season"] >= 1999) & (pbp["mp"] > 0)])
+shares = pbp[POS_SHARE_COLS].fillna(0.0)
+# Centre of mass of the minutes played at each spot: 1 = pure PG, 5 = pure C.
+# One continuous number instead of five shares that sum to 1.
+pbp["pos_index"] = ((shares.to_numpy() * np.arange(1, 6)).sum(axis=1)
+                    / shares.sum(axis=1).replace(0, np.nan))
+master = master.merge(pbp[["season", "player_id", "pos_index"]],
+                      on=["season", "player_id"], how="left")
+
 master = master[master["g"] >= 20]
 master["era"] = master["season"].apply(assign_era)
 
 master.to_csv("master_stats.csv", index=False)
 
+# Style only: what a player does, not how well he does it.
+#
+# The previous set carried six measures of overall value (per, ws_48, obpm,
+# dbpm, vorp, plus ts/fg%), and PC1 of that space was player quality. Clusters
+# explained 59-67% of BPM variance per era, so the archetypes were a quality
+# ladder with role names on it -- useless for "fit", where quality has to be a
+# separate axis. On this set they explain 12-20% of BPM, track position far
+# better (eta^2 0.70-0.79 vs 0.48-0.60), and are as stable across seeds (ARI
+# 0.91-0.98). Quality stays available as bpm/obpm/dbpm on every row.
 features = [
-    # NOTE: columns that are another column in different units, or an exact
-    # linear combination of others, are deliberately excluded — they otherwise
-    # enter the distance metric twice at full weight. Each is recoverable from
-    # the kept set with R^2 >= 0.96:
-    #   e_fg_percent      -> ts_percent (0.986)
-    #   orb/drb/ast/tov_per_100_poss -> the matching _percent rates (0.96-1.00)
-    #   bpm               -> obpm + dbpm (0.9997, exact by definition)
-
-    # per-100 volume
-    "pts_per_100_poss", "fga_per_100_poss", "x3pa_per_100_poss", "fta_per_100_poss",
-
-    # events / fouls
+    # role and touches
+    "usg_percent", "ast_percent", "tov_percent",
+    "orb_percent", "drb_percent",
     "stl_per_100_poss", "blk_per_100_poss", "pf_per_100_poss",
-
-    # efficiency
-    "fg_percent", "x3p_percent", "ft_percent", "ts_percent",
-
-    # usage/share style — playmaking, handling and rebounding live here as rates
-    "usg_percent", "orb_percent", "drb_percent", "ast_percent", "tov_percent",
-
-    # impact-style advanced (bpm omitted: it is obpm + dbpm)
-    "per", "ws_48", "obpm", "dbpm", "vorp",
+    # how he scores: free-throw rate, shot diet by distance, self-creation
+    "f_tr", "ft_percent",  # ft% as a shooting-touch signal, not efficiency
+    *SHOT_COLS,
+    # where he plays
+    "pos_index",
 ]
 
 # Archetype names now live in cluster_reference.json and are matched to cluster

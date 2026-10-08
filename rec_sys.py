@@ -98,13 +98,34 @@ name_map = (
 
 
 
+# A traded player's season is one row in master_clustered (the 2TM/3TM total),
+# whose team code maps to no franchise. Filtering on that used to drop every
+# traded player-season from players.csv -- Marbury '04, Iverson '07, Kidd '08 --
+# while the same item_ids stayed in the interaction matrix, where they then fell
+# back to a *different* season's cluster. Name all the teams instead, in the
+# order BBRef lists the stints (chronological).
+_MULTI_TEAM = ["2TM", "3TM", "4TM", "5TM", "TOT"]
+_stints_named = adv_raw[~adv_raw["team"].isin(_MULTI_TEAM) & (adv_raw["season"] >= 1999)]
+multi_team_full = {
+    (pid, int(season)): " / ".join(dict.fromkeys(
+        canonical_team(t, int(season)) for t in g["team"]
+    ))
+    for (pid, season), g in _stints_named.groupby(["player_id", "season"], sort=False)
+    if len(g) > 1
+}
+
 adv_raw = adv_raw[adv_raw["g"] > 20]
 adv_raw = adv_raw[~adv_raw["team"].isin(["2TM", "3TM", "4TM", "5TM"])]
 
 players["team_full"] = [
-    canonical_team(abbr, int(season)) for abbr, season in zip(players["team_per100"], players["season"])
+    multi_team_full.get((pid, int(season))) if abbr in _MULTI_TEAM
+    else canonical_team(abbr, int(season))
+    for pid, abbr, season in zip(players["player_id"], players["team_per100"], players["season"])
 ]
-players = players[~players["team_full"].isin([None, "2TM", "3TM", "4TM", "5TM"])]
+_unnamed = players["team_full"].isna()
+if _unnamed.any():
+    raise ValueError(f"{int(_unnamed.sum())} player-seasons have no resolvable team, e.g. "
+                     f"{players.loc[_unnamed, ['player_id', 'season', 'team_per100']].head(3).values.tolist()}")
 
 teams["team"] = teams["team"].map(norm_str)
 teams["team_full"] = [

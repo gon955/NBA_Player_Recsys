@@ -123,10 +123,9 @@ def _build_model():
             f"columns {missing_required} — cannot build the style model."
         )
 
-    # Drop multi-team aggregate rows if present, then one row per player-season.
-    team_col = "team_per100" if "team_per100" in df.columns else None
-    if team_col:
-        df = df[~df[team_col].isin(["2TM", "3TM", "4TM", "5TM"])]
+    # One row per player-season. For a traded player that row IS the 2TM/3TM
+    # season total (season_totals() keeps it and drops the per-team splits), so
+    # filtering on team code here would drop the whole season, not a duplicate.
     df = df.dropna(subset=["player_id", "season"])
     df = df.drop_duplicates(subset=["player_id", "season"], keep="last")
 
