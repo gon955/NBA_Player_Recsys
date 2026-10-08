@@ -42,6 +42,9 @@ backend/chroma_db/
 data/pbpstats_raw/
 data/pbpstats_lineups.csv
 data/pbpstats_players.csv
+# lineup_features.py output (~137 MB, rebuilt in under a minute). The crosswalk
+# and unmatched report beside it are small and tracked.
+data/lineup_panel.csv
 
 # AWS CLI scratch output
 /response.json
@@ -59,3 +62,18 @@ data/pbpstats_players.csv
 /adv_stats_combined.csv
 /per_100_combined.csv
 /per_36_combined.csv
+
+# fetch_salaries.py's cache of Basketball-Reference team pages (~800 gzipped
+# HTML files). data/salaries.csv and data/team_payroll.csv are rendered from it
+# and tracked; --consolidate-only rebuilds them without the network.
+data/salaries_raw/
+# evaluate_recs.py's dump of every LightFM score (~18 MB); --refresh-lightfm rebuilds it.
+data/lightfm_scores_full.csv
+# fetch_transactions.py's cache of BBRef transaction pages; data/transactions.csv is tracked.
+data/transactions_raw/
+
+# Saved browser copy of the clustering-audit artifact page; reference only, not project code.
+/Clusters to Recommendations.html
+/Clusters to Recommendations_files/
+# impact_recs.py --free-agency output (experimental, opt-in); regenerate when needed.
+data/recs_impact_fa.csv
