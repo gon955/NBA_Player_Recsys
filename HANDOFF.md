@@ -1,9 +1,9 @@
 # Session handoff: recsys overhaul, phase 2
 
-Branch `recsys_overhaul`. Phase 1 is merged to `main` (PR #11); phase 2 is committed on
-this branch and not merged. Run everything in a conda env built from `environment.yml`.
+Phases 1 and 2 are merged to `main` (PRs #11, #12). Run everything in a conda env built
+from `environment.yml`.
 
-Tests: `pytest tests_pipeline --no-cov` (95 pass) and `pytest tests --no-cov` (15 pass),
+Tests: `pytest tests_pipeline --no-cov` (96 pass) and `pytest tests --no-cov` (15 pass),
 run separately (both suites import a `helper.py`); `ruff check *.py tests_pipeline/` is clean.
 
 ---
@@ -44,6 +44,41 @@ calibration, plus a feature-group ablation. Pooled AUC is shown for reference on
 ---
 
 ## 3. Results
+
+**Clean tests and the current weight (November 2026).** These replace the older rows below
+wherever they disagree.
+
+*Holdout, decisions 2018-2024 at w = 20* (923 arrivals). Availability, calibration and the
+value model held up: 30.5% of listed players moved (random 22.1%), bias -0.02, projected
+impact beat BPM on next-season BPM among the same movers (rho 0.571 vs 0.527). Against
+LightFM it won realism (0.393 vs 0.477; gap CI 0.058 to 0.107) and lost quality (-0.032 vs
++0.095; gap CI 0.035 to 0.214). LightFM's lists are mostly stars who stay (84% stayed, 43%
+stars vs 3.1% of arrivals), and its models were fit on later seasons of each era, which
+favours it. `data/holdout_log.csv` records 5 views, so the holdout is no longer clean.
+
+*Weight.* `REALISM_WEIGHT` 20 -> 12, chosen on 1999-2017 only by a rule fixed in advance:
+highest quality with realism <= 0.443, moved >= 26.7%, jaccard <= 0.156, stars <= 17%, ties
+within 0.01 going to the higher weight.
+
+| decisions | quality, w = 20 -> 12 | gain (95% CI) | realism cost |
+|---|---|---|---|
+| 1999-2017 | 0.072 -> 0.089 | +0.016 (0.010 to 0.023) | 0.005 |
+| 2018-2024 | -0.032 -> -0.001 | +0.031 (0.021 to 0.041) | 0.005 |
+| 2025 | 0.096 -> 0.105 | +0.009 (-0.013 to +0.033) | 0.007 |
+
+*Fresh test, decisions after 2025 graded on 2025-26* (116 arrivals), run once at w = 12 in a
+temporary copy of the data; the 2026 outcome data is not in this repo. The 2025 top-50 lists
+were byte-identical with and without 2026 data. 28.7% moved (random 18.1%), bias -0.07,
+projected vs BPM rho 0.536 vs 0.478, realism 0.394 vs LightFM 0.455 (gap CI about 0 to 0.13),
+quality +0.105 vs LightFM +0.115 (a tie, CI -0.25 to +0.27). Team R^2 could not run. The next
+untouched test is decisions after 2026, once 2026-27 has been played.
+
+*What quality does not measure.* Quality is share_next x net impact for the arriving player:
+it counts his minutes but not who he displaces. The score and the old "upgrade" figure are per
+100 possessions and ignore minutes, and `replaces` is the cheapest legal departure, so 49% of
+the 2025 top 10s name someone at or under 15 minutes per team game. The list therefore does
+not estimate how much a move helps a team, and the frontend no longer shows "upgrade". See
+section 7, item 0.
 
 | system | realism | weighted | quality ρ | team R² |
 |---|---|---|---|---|
@@ -237,6 +272,10 @@ python acquisition.py [--model-compare | --wiki-compare 2015 2024]
 
 ## 7. Next session
 
+0. **Estimate the team effect of a move.** Expected minutes x (his value - the value of the
+   minutes he would take), with a small model of minutes from his past role and how thin the
+   position is. Grade it on delivered value over the minutes displaced, alongside the team
+   net-rating test. Tune on decisions through 2017; the clean test is decisions after 2026.
 1. **Commit this work** (only when you ask), perhaps as separate commits: cleanup,
    decoupling, the models, the data fetchers.
 2. **Decide on the real matchup-data pilot** (pending). pbpstats
@@ -286,10 +325,10 @@ python acquisition.py [--model-compare | --wiki-compare 2015 2024]
         get, ranked by the same score, alongside the realistic targets. It needs a tier
         field in `export_recs.py` and `backend/recommender.py`, and a second list in
         the frontend; the review app would need the same.
-     2. Lower `REALISM_WEIGHT` (now 20, with `MOVE_CAP_PCT = 0.8`). Starters rise, but
+     2. Lower `REALISM_WEIGHT` (now 12, with `MOVE_CAP_PCT = 0.8`). Starters rise, but
         so do unmovable stars (the weight-8 trade-off).
      3. Keep the lists as they are, as a reflection of how rarely good players move.
-   - the realism weight (now 20 with the movability cap; lower = more stars and
+   - the realism weight (now 12 with the movability cap; lower = more stars and
      starters, higher = more journeymen), possibly as a UI toggle;
    - the value cap;
    - whether rebuilding teams should get an age preference as an explicit product

@@ -43,6 +43,7 @@ def test_recommendations_for_a_known_team_season(client):
         assert expl["replaces"], "every listed move names who goes out"
         assert expl["upgrade"] > 0, "the upgrade gate lets only upgrades through"
         assert expl["position_value"] is not None
+        assert expl["minutes"] > 0
         assert isinstance(expl["with"], list)
 
 

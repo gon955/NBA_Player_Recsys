@@ -6,7 +6,9 @@ export type RecommendPayload = {
 /** Why a player is on the list: the move the impact recommender found.
  *  `value` is projected net impact next season if he changes teams, points
  *  per 100 possessions vs. league average; `position_value` the same for the
- *  team's current rotation at his position, minutes-weighted. */
+ *  team's current rotation at his position, minutes-weighted; `minutes` his floor
+ *  time last season per team game. `replaces` and `with` are the contracts going
+ *  out to make the trade legal, not necessarily whose minutes he would take. */
 export type RecommendationExplanation = {
   age: number | null;
   bpm: number | null;
@@ -14,13 +16,12 @@ export type RecommendationExplanation = {
   position_value: number | null;
   replaces: string;
   replaces_id: string;
-  replaces_value: number | null;
   with: string[];
   with_salary: number | null;
-  upgrade: number | null;
   salary: number | null;
   replaces_salary: number | null;
   cap: number | null;
+  minutes: number | null;
 } | null;
 
 export type Recommendation = {

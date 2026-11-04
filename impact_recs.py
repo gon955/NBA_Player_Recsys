@@ -302,7 +302,8 @@ ARCHETYPES = False      # add fit_model.py's archetype main effects to value (se
 CREATOR_CURVATURE = os.path.join("data", "creator_curvature.csv")
 CREATOR_TERM = True     # add weakness_test.py's creator curvature to value
 CREATOR_MIN_HISTORY = 3 # seasons pooled before the curvature is used
-REALISM_WEIGHT = 20.0   # score += this * log P(acquired) (acquisition.py); 0 = off
+# Tuned on decisions 1999-2017 by a rule fixed in advance (HANDOFF.md section 3).
+REALISM_WEIGHT = 12.0   # score += this * log P(acquired) (acquisition.py); 0 = off
 MOVE_CAP_PCT = 0.8      # cap P(he moves at all) at this quantile of the season's pool; 1 = no cap
 PROJ_AGE = False        # age terms in the legacy linear projection (see project())
 PROJ_METHOD = "mover"   # "mover" (project_mover()) or "linear" (project())

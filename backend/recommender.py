@@ -57,10 +57,14 @@ def recommend(user_id: str, k: int = 10) -> list[dict]:
                 # Others sent out to match salary, when his alone does not.
                 "with": [w for w in str(r.with_).split(";") if w and w != "nan"],
                 "with_salary": _num(r.with_salary),
+                # Per 100 possessions, ignoring minutes, and against a player who may
+                # only be salary going out. The frontend no longer shows it; it stays
+                # until no deployed frontend reads it.
                 "upgrade": None if value is None or rep_value is None else value - rep_value,
                 "salary": _num(r.salary),
                 "replaces_salary": _num(r.replaces_salary),
                 "cap": _num(r.cap),
+                "minutes": _num(r.minutes),
             },
         })
     return out

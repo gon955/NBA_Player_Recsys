@@ -89,7 +89,7 @@ uvicorn app:app --reload
 | `GET /` | liveness banner |
 | `GET /health` | health check |
 | `GET /teams` | team → available seasons |
-| `POST /recommendations` | `{ user_id, k }` → ranked players with explanations (who goes out, the projected upgrade, salaries). `era` is optional and ignored. |
+| `POST /recommendations` | `{ user_id, k }` → ranked players with explanations (the salary going out, projected impact, minutes, salaries). `era` is optional and ignored. |
 | `POST /ask` | `{ query, era?, n_results? }` → grounded answer |
 
 Environment variables:
@@ -237,7 +237,9 @@ For each candidate and team, among swaps the team could legally make (salary mat
 - **Realism** (`acquisition.py`): gradient-boosted P(team acquires player), fit on earlier seasons' real arrivals. "How likely he is to move at all" is capped at the season's 80th percentile, so the most movable journeymen do not top every list.
 - **Fit:** the one team-specific signal with observable support. Players joining a team that is weak at their position get more minutes.
 
-Each explanation names who goes out (and who else, to match salary), the projected upgrade, and both salaries. Every constant above is tuned in `HANDOFF.md`, with the evidence in the module docstrings.
+Each explanation names the contracts going out (and who else, to match salary), his projected impact, his minutes, the team's level at his position, and both salaries.
+
+**What this does not measure.** Every number above is per 100 possessions and ignores minutes, so the list does not estimate how much a move would improve the team. The player named as going out is the cheapest legal departure, often a low-minute contract rather than whose minutes he would take: half of the 2025 top 10s name someone under 15 minutes per team game. That is why the frontend does not show the old "upgrade" figure (his value minus that player's). `HANDOFF.md` records the plan for a minutes-based team effect. Every constant above is tuned in `HANDOFF.md`, with the evidence in the module docstrings.
 
 
 ## Design notes
