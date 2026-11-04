@@ -77,3 +77,16 @@ def test_score_next_season_perfect_prediction_has_r2_near_one():
 
     o_r2, d_r2 = im.score_next_season(panel, est)
     assert o_r2 > 0.99 and d_r2 > 0.99
+
+
+def test_starterness_is_centred_and_ranks_starters_above_bench():
+    df = pd.DataFrame({
+        "season": 2020, "TeamId": 1,
+        "p1_id": ["s1", "b1"], "p2_id": ["s2", "b2"], "p3_id": ["s3", "b3"],
+        "p4_id": ["s4", "b4"], "p5_id": ["s5", "s1"],
+        "OffPoss": [900.0, 100.0], "DefPoss": [900.0, 100.0],
+    })
+    z = im.starterness(df)
+    w = (df["OffPoss"] + df["DefPoss"]).to_numpy()
+    assert z[0] > z[1]
+    assert abs((z * w).sum() / w.sum()) < 1e-12

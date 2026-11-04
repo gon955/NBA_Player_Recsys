@@ -8,15 +8,14 @@ dependencies:
   - pip:
     - fastapi==0.116.1
     - uvicorn==0.35.0
+    - boto3==1.42.97        # rag.py calls Bedrock for the Ask tab
     - pandas==1.2.4
     - numpy==1.26.4
     - joblib==1.5.2
     - scikit-learn==1.6.1
     - scipy==1.13.1
-    - matplotlib==3.9.2
-    - seaborn==0.13.2
-    - lightfm==1.17
     - requests==2.32.5
+    - xgboost-cpu==2.1.4    # acquisition.py's LambdaMART comparison (--model-compare); the plain xgboost wheel drags in 430 MB of nvidia-nccl
 
     # Dev/CI only — tests and linting. Mirrored in backend/requirements-dev.txt,
     # which is what CI installs (it does not use conda).

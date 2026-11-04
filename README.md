@@ -1,60 +1,81 @@
 # NBA Recommendation System
 
-An era-aware NBA roster recommender with a grounded question-answering layer. Four parts:
+For a team-season (say *Chicago 2025*), recommends players who would make the team better next season, among moves it could realistically make. Also answers natural-language questions about the 1999–2025 data. Four parts:
 
-- **Offline modeling pipeline** (`player_cluster.py`, `team_cluster.py`, `rec_sys.py`) — clusters player-seasons and team-seasons into archetypes *within era*, builds the interaction matrix, and trains one LightFM model per era.
-- **Retrieval pipeline** (`chunk_data.py`, `embed_chunks.py`, `backend/export_index.py`) — renders every player-season and team-season as a natural-language stat chunk, embeds it, and exports a flat vector index the runtime can search without a database.
-- **FastAPI backend** (`backend/`) — recommendations with feature-level explanations, cluster summaries, static assets, and a `/ask` endpoint that answers questions over the retrieved chunks via AWS Bedrock.
-- **Next.js frontend** (`nba-recs-frontend/`) — three tabs: Recommend, Clusters, and Ask.
+- **Offline recommender pipeline** (root `*.py`) — a lineup-based player impact model, a projection of next-season impact, a model of how likely each team is to acquire each player, and the salary screen. It writes a ranked, explained list per team-season.
+- **Review loop** (`review_app.py`, `audit.py`) — a local page for a person to flag recommendations that should never be made. Flags only ever remove entries, and veto *rules* must first pass an audit against real moves.
+- **FastAPI backend** (`backend/`) — serves the precomputed lists, plus a `/ask` endpoint that answers questions over retrieved stat chunks via AWS Bedrock.
+- **Next.js frontend** (`nba-recs-frontend/`) — two tabs: Recommendations and Ask.
 
 The backend ships as a Lambda container image behind a Function URL. The same code runs under `uvicorn` locally — `lambda_handler.py` wraps the FastAPI app in Mangum, so there is no branching inside the routes.
 
-Eras are fixed at three: `1999-2007`, `2008-2015`, `2016-present` (see `era_of()` in `helper.py`).
+The project's history (the retired LightFM recommender, the clustering pipeline) is kept out of the repo, in a gitignored `local_archive/`. `HANDOFF.md` is the detailed record of how the current system was built and evaluated.
 
 
 ## Getting Started
 
 ### 1. Environment
 
-**Python 3.9 is required.** `lightfm==1.17` does not build on 3.11+, which constrains the whole stack — it is also why the Dockerfile uses `python:3.9-slim` rather than an AWS Lambda base image (the official python3.9 base image is past EOL). Lambda accepts any image implementing the Runtime API, which `awslambdaric` provides.
+**Python 3.9.** The backend still pins `pandas==1.2.4`, which has no wheels past 3.9; that is also why the Dockerfile uses `python:3.9-slim` rather than an AWS Lambda base image (the official python3.9 base image is past EOL). Lambda accepts any image implementing the Runtime API, which `awslambdaric` provides.
 
 ```bash
-conda env create -f environment.yml && conda activate recsys   # offline pipeline
-pip install -r backend/requirements.txt                        # backend runtime
-pip install -r backend/requirements-build.txt                  # + chromadb, for index builds only
-pip install -r backend/requirements-dev.txt                    # + pytest/ruff, for tests and linting
+conda env create -f environment.yml && conda activate recsys   # offline pipeline (+ tests, lint)
+pip install -r backend/requirements.txt                        # backend runtime only
+pip install -r backend/requirements-dev.txt                    # + pytest/ruff
 ```
 
-`backend/requirements.txt` is runtime-only on purpose. `chromadb` lives in `requirements-build.txt` because it is needed to *build* the index and never to serve it — see [Vector search](#vector-search) below. Test and lint tooling is split out into `requirements-dev.txt` for the same reason: the Dockerfile installs `requirements.txt` alone, so nothing in the other two files reaches the Lambda image.
+`backend/requirements.txt` is runtime-only on purpose: the Dockerfile installs it alone, so nothing in `requirements-dev.txt` reaches the Lambda image.
 
 Node.js ≥ 18 for the Next.js app (the frontend image uses `node:20-alpine`).
 
-AWS credentials with `bedrock:InvokeModel` in `us-west-2` are needed for `/ask`. In Lambda this is the execution role; locally, standard credentials from the environment. There is no API key to set — the migration off Groq replaced key auth with IAM.
+AWS credentials with `bedrock:InvokeModel` in `us-west-2` are needed for `/ask`, on two models: `amazon.nova-lite-v1:0` (answers) and `amazon.titan-embed-text-v2:0` (embedding the question). In Lambda this is the execution role; locally, standard credentials from the environment.
 
-### 2. Data preparation & modeling
+### 2. The recommender pipeline
 
-Raw Basketball-Reference CSVs live in `data/` (already populated).
-
-```bash
-python player_cluster.py     # player archetypes, PCA plots, cluster counts
-python team_cluster.py       # team archetypes, same outputs
-python rec_sys.py            # trains per-era LightFM models -> models_all.joblib
-```
-
-These write intermediate CSVs (`master_clustered.csv`, `master_stats.csv`, `per_100_combined.csv`, …) to the repo root. **Those are gitignored regenerable outputs, not missing files** — if the repo looks like it is missing `master_clustered.csv`, run the clustering scripts. The copies under `backend/` (`models_all.joblib`, `interactions.csv`, `data/players.csv`) are tracked intentionally because they ship inside the container.
-
-### 3. Build the retrieval index
+Raw Basketball-Reference CSVs live in `data/` (already populated), along with the salary, payroll and transaction tables the fetchers render. To regenerate everything after an upstream change:
 
 ```bash
-python embed_chunks.py            # chunks + fastembed -> backend/chroma_db (69 MB)
-python backend/export_index.py    # chroma_db -> backend/data/index/*.npy + *_meta.csv.gz
+python player_seasons.py                 # player table: name, age, position, BPM
+python weakness_test.py --write-curvature
+python contract_status.py
+python fetch_wikipedia_fa.py --consolidate-only   # no network if the cache exists
+python impact_recs.py                    # data/recs_impact*.csv (top 10s)
+python export_recs.py                    # backend/data/recs.csv: what the app serves
 ```
 
-Commit the contents of `backend/data/index/` — that directory is what the deployed image reads. `backend/chroma_db` is **not** tracked and never ships: it is excluded from the build context via `.dockerignore` and gitignored, so a fresh clone must run `embed_chunks.py` before `export_index.py` can do anything.
+`export_recs.py` applies active veto rules and the review's flags, and writes the top 50 per team-season with the context each explanation needs. The backend does no inference; restart it to pick up a new `recs.csv`.
 
-Re-run both steps whenever the clustering or stat pipelines change, or the chunks go stale relative to the models.
+The lineup panel (`data/lineup_panel.csv`, ~137 MB) and the pbpstats bulk files behind it are gitignored; `fetch_pbpstats.py` and `lineup_features.py` rebuild them.
 
-### 4. Backend (FastAPI)
+### 3. Grading
+
+```bash
+python rubric.py              # tuning seasons (decisions 1999-2017)
+python rubric.py --holdout    # 2018 onward; every run is logged to data/holdout_log.csv
+python audit.py screen        # which real moves the salary screen rules out
+python evaluate_recs.py       # the older realism / quality report, for reference
+```
+
+There is no ground truth for what a team *should* have done, so `rubric.py` grades only what real data can answer:
+- **availability:** did the players we list actually move?
+- **value accuracy:** did the ones who moved deliver what we projected?
+- **specificity:** do teams get different lists?
+
+Each season is predicted from earlier seasons only. Settings are tuned on the tuning seasons, and the holdout is meant to be read once.
+
+### 4. Review
+
+```bash
+python review_app.py          # http://127.0.0.1:8765
+```
+
+A local page over the live lists. Each decision — ok, or flagged with reasons and a note — goes into `data/review/judgments.csv`, and is kept for good:
+- **Repeat passes show only new entries.** The team queue counts them.
+- **"Apply flags" rebuilds the lists from the page.** Flagged picks drop out and their replacements appear as new.
+
+Flags are unaudited and narrow: each removes one (season, team, player) entry. Patterns become veto rules in `audit.RULES`, which must pass `python audit.py rules` (a check against real moves) before they are switched on. `python audit.py summarize` shows what flagged picks have in common.
+
+### 5. Backend (FastAPI)
 
 ```bash
 cd backend
@@ -66,18 +87,15 @@ uvicorn app:app --reload
 | `GET /` | liveness banner |
 | `GET /health` | health check |
 | `GET /teams` | team → available seasons |
-| `POST /recommendations` | `{ user_id, era, k }` → ranked players with explanations |
-| `GET /cluster-summary/player` · `/team` | cluster counts per era |
+| `POST /recommendations` | `{ user_id, k }` → ranked players with explanations (who goes out, the projected upgrade, salaries) |
 | `POST /ask` | `{ query, era?, n_results? }` → grounded answer |
-| `/static/...` | headshots and cluster visuals |
 
 Environment variables:
 
 - `ALLOWED_ORIGINS` — comma-separated exact CORS origins, defaults to `http://localhost:3000`.
 - `ALLOWED_ORIGIN_REGEX` — optional pattern matched against the request origin, for origins that cannot be enumerated (Cloudflare Pages preview deployments). Unset by default, which keeps exact matching only. Starlette `fullmatch()`es it, so it must cover the whole origin.
-- `FASTEMBED_CACHE_DIR` — where the embedding weights live, defaults to `/opt/fastembed` (set by the Dockerfile).
 
-### 5. Frontend (Next.js)
+### 6. Frontend (Next.js)
 
 ```bash
 cd nba-recs-frontend
@@ -91,7 +109,7 @@ Set `NEXT_PUBLIC_API_BASE` in `.env.local` if the backend is not on `http://127.
 
 `next.config.ts` emits a **static export** (`out/`) by default. Every page here is a client component and all data is fetched from the backend in the browser, so there is no server to run. The compose image needs a Node server, so its Dockerfile sets `NEXT_OUTPUT=standalone` to get the previous `output: "standalone"` behaviour back.
 
-### 6. Both, via Docker
+### 7. Both, via Docker
 
 ```bash
 docker compose up --build
@@ -99,12 +117,13 @@ docker compose up --build
 
 Compose builds the same Lambda image used in production and overrides its entrypoint (`entrypoint: []`) so `uvicorn` serves plain HTTP on `:8000` instead of `awslambdaric`. AWS credentials are passed through from the environment for the Bedrock call.
 
-### 7. Deploy the backend to Lambda
+### 8. Deploy the backend to Lambda
 
-Build, push to ECR, and point the `nba-recsys` function at the new image. The function runs as a container package on x86_64 with a 60 s timeout and 2048 MB — the memory matters more than it looks, since Lambda scales CPU with it and both the LightFM scoring and the ONNX embedding pass are CPU-bound.
+Build, push to ECR, and point the `nba-recsys` function at the new image. The function runs as a container package on x86_64 with a 60 s timeout and 2048 MB. That memory was sized for a local ONNX embedding pass (Lambda scales CPU with memory), which is gone: what remains is a CSV lookup, a numpy scan and two Bedrock calls. A lower setting is likely enough and cheaper; measure before changing it.
 
+The execution role needs `bedrock:InvokeModel` on `amazon.titan-embed-text-v2:0` as well as `amazon.nova-lite-v1:0`, with model access enabled for both in `us-west-2`. If the role's policy names model ARNs, add Titan before deploying, or `/ask` will fail with AccessDenied.
 
-### 8. Deploy the frontend to Cloudflare Pages
+### 9. Deploy the frontend to Cloudflare Pages
 
 The frontend is a static bundle, so it needs no server and no AWS resources. Co-locating it with the backend would buy nothing: the browser calls the Lambda Function URL directly, so there is no server-to-server hop that being in the same region would shorten.
 
@@ -120,7 +139,7 @@ Cloudflare Pages settings:
 
 Pick framework preset **None**, not "Next.js" — that preset builds for the Workers runtime via `@cloudflare/next-on-pages`, which is for apps needing SSR and would fight the static export. `.nvmrc` pins Node 20 because Next 15 requires `>=18.18` and the default build image has shipped older.
 
-Two things that will bite otherwise:
+Things that will bite otherwise:
 
 - `NEXT_PUBLIC_API_BASE` is baked in at build time, so changing the backend URL means a rebuild, not just a settings change.
 - Add the Pages origin to `ALLOWED_ORIGINS` on the Lambda, or the browser blocks every call on CORS. Both variables are read at import, so changing them takes effect on the next cold start — no image rebuild or ECR push.
@@ -132,129 +151,123 @@ Two things that will bite otherwise:
 
 - Do not also configure CORS on the Lambda Function URL itself. It has its own CORS block, separate from the FastAPI middleware, and having both emit `Access-Control-Allow-Origin` produces a duplicate header that browsers reject.
 
-Cluster PCA plots and archetype images are still served from the Lambda's `/static/` mount, so each one is an invocation. Copying `backend/static/cluster/` into `nba-recs-frontend/public/` would serve them from the CDN instead — note the backend also returns absolute `/static/` URLs inside recommendation explanations (`cluster_image_for` in `app.py`), so that move is a coordinated change on both sides.
-
 ### Link previews
 
-`nba-recs-frontend/src/app/layout.tsx` emits Open Graph and Twitter card tags, and `nba-recs-frontend/public/og.png` is the 1200x630 image they point at.
+`nba-recs-frontend/src/app/layout.tsx` emits Open Graph and Twitter card tags, and `nba-recs-frontend/public/og.png` is the 1200x630 image they point at. Its source is `nba-recs-frontend/og-image.html`; the render command is in that file.
 
 This matters because link unfurlers are stricter than they look. LinkedIn, Slack and iMessage refuse to render a preview at all when `og:title`, `og:description` or `og:image` is missing — the crawl succeeds, the page returns 200, and the preview is still rejected. A `<title>` and `<meta name="description">` alone, which is what Next's default `metadata` block produced here, are not enough.
 
 Two constraints shape how the tags are built:
 
 - **The URL has to be absolute and hardcoded.** Crawlers do not resolve relative `og:image` paths, and a static export has no request to infer its own host from, so the origin is baked in at build time from `NEXT_PUBLIC_SITE_URL` (via `metadataBase`) rather than discovered at runtime.
-- **The image has to be a plain, unauthenticated HTTPS fetch.** Serving it from `public/` puts it on the Cloudflare CDN, which satisfies that. Pointing `og:image` at the Lambda's `/static/` mount instead would make every crawl a cold-startable invocation.
+- **The image has to be a plain, unauthenticated HTTPS fetch.** Serving it from `public/` puts it on the Cloudflare CDN, which satisfies that; a Lambda-served image would make every crawl a cold-startable invocation.
 
 After deploying, re-scrape through [LinkedIn's Post Inspector](https://www.linkedin.com/post-inspector/) — every crawler caches the first response it saw, so a fixed page keeps unfurling with the old error until the cache is refreshed.
 
-### 9. Tests and linting
+### 10. Tests and linting
 
 ```bash
-pytest                 # tests/ — config lives in pyproject.toml
-ruff check .           # lint
-ruff check . --fix     # apply the autofixable subset
+pytest                                # tests/ — the API; config lives in pyproject.toml
+pytest tests_pipeline --no-cov        # the offline pipeline and review tooling
+ruff check .                          # lint
 ```
 
-`tests/` covers the API at the route level: `tests/conftest.py` puts `backend/` on `sys.path` and builds a `TestClient` over the real `app`, which is the same import graph the container gets from `WORKDIR /app; COPY backend/ .`. Because `models_all.joblib`, `interactions.csv` and `data/index/` are tracked, the suite runs off a plain checkout with no fixtures to generate. It also needs no AWS credentials — `rag.py` constructs its Bedrock client and embedder lazily, so nothing under `tests/` reaches `/ask`.
+Run the two suites separately: `tests/` puts `backend/` first on `sys.path` (the container's import graph), while the pipeline needs the root `helper.py`.
 
-`.github/workflows/ci.yml` runs two jobs. The `ruff` job installs just the binary and finishes in seconds. The `pytest` job builds the Dockerfile's `test` stage and runs the suite **inside the image** rather than on the runner: `lightfm==1.17` is an sdist that compiles against numpy at build time and does not install cleanly on a bare runner, which is the reason the project is containerised in the first place. The `test` stage reuses the `deps` layer, so it never pays for the fastembed weights the production image bakes in.
+`tests/` covers the API at the route level: `tests/conftest.py` builds a `TestClient` over the real `app`, the same import graph the container gets from `WORKDIR /app; COPY backend/ .`. Because `data/recs.csv` and `data/index/` are tracked, the suite runs off a plain checkout. It needs no AWS credentials — `rag.py` constructs its Bedrock client and embedder lazily, so nothing under `tests/` reaches `/ask`.
+
+`.github/workflows/ci.yml` runs two jobs. The `ruff` job installs just the binary and finishes in seconds. The `pytest` job builds the Dockerfile's `test` stage and runs `tests/` **inside the image**, so CI exercises exactly the runtime's dependency set. The `test` stage reuses the `deps` layer the runtime is built from. It triggers on pull requests targeting `main` (where GitHub tests the merge result) and on pushes to `main`.
 
 To reproduce a CI run locally:
 
 ```bash
 docker build --target test -t nba-recsys-test -f backend/Dockerfile .
 docker run --rm nba-recsys-test pytest
-``` It triggers on pull requests targeting `main`, where GitHub tests the merge result rather than the branch tip, and on pushes to `main` as a post-merge check. Feature-branch commits do not trigger it.
+```
 
 
-## Key features
+## How a recommendation is scored
 
-- **Explainable recommendations.** Each suggestion carries its top user features (team traits), top item features (player traits), user/item biases, and matching cluster visuals.
-- **Season filtering.** Recommendations are restricted to the selected season's player pool.
-- **Era-relative clustering.** Archetypes are computed within era, so a player is labeled against his own era's peers rather than against 1999 and 2024 simultaneously.
-- **Grounded Q&A.** `/ask` retrieves the nearest player and team chunks (optionally era-filtered) and prompts `amazon.nova-lite-v1:0` under strict rules: use only the provided data, invent no numbers, and refuse when the data is insufficient. Refusal is treated as a correct answer, not a failure.
-- **Stat-similarity comps.** "Who plays like X" questions get a third retrieval signal injected — see below.
+For each candidate and team, among swaps the team could legally make (salary matching with a package of up to one extra lesser contract, a value cap, and an upgrade gate):
+
+    score = projected value if he moves
+          + REALISM_WEIGHT × log P(this team acquires him)   [movability capped]
+          + FIT_WEIGHT × how weak the team is at his position
+
+- **Projected value** (`impact_recs.project_mover()`): next-season net impact from a possession-weighted ridge over 5-man lineups. It uses the previous season, the box score and age, and is *conditioned on changing teams*, because movers underperform their estimates.
+- **Realism** (`acquisition.py`): gradient-boosted P(team acquires player), fit on earlier seasons' real arrivals. "How likely he is to move at all" is capped at the season's 80th percentile, so the most movable journeymen do not top every list.
+- **Fit:** the one team-specific signal with observable support. Players joining a team that is weak at their position get more minutes.
+
+Each explanation names who goes out (and who else, to match salary), the projected upgrade, and both salaries. Every constant above is tuned in `HANDOFF.md`, with the evidence in the module docstrings.
 
 
 ## Design notes
 
-### Why stat similarity is separate from the recommender
+### Stat similarity for the Ask tab
 
-The LightFM embeddings encode **roster co-occurrence** (team-season ↔ player-season interactions), so their nearest neighbors are teammates, not stylistic comps. That is the right signal for "which players fit this team" and the wrong one for "who plays like Nash." Playing style lives in the per-100 rate stats, so `backend/similarity.py` computes it independently — pure pandas/numpy over the stat CSVs, no `models_all.joblib` load.
+"Who plays like X" questions get stat-profile nearest neighbours from `backend/similarity.py` — pure pandas/numpy over `backend/data/players.csv`, separate from the recommender, which asks a different question (who would make a team better).
 
 Stats are z-scored **within era** before comparison, so every player is expressed as distance from his era's peers rather than in raw units. A 40% three-point shooter in 2003 and one in 2023 land at different z-scores, which is what makes cross-era comparison meaningful.
 
 `rag.py` fires this path only when the query matches a similarity cue ("plays like", "similar to", "in the mold of", …), then formats the results as a labeled `STAT-SIMILARITY COMPS` block the LLM can cite. When even the closest match is statistically distant, the block says so and instructs the model to hedge.
 
-### Evaluation
-
-`rec_sys.py` scores each era against two references, both on the same held-out split (3 interactions per team-season, kept out of a throwaway probe model fit for evaluation only — the served model is refit on everything afterwards):
-
-- **Train vs. held-out AUC**, side by side. Scoring a model on the matrix it was fitted to measures memorisation, not skill: that number read 0.90 for a model whose held-out AUC was 0.52.
-- **Precision@10 against a most-popular-items baseline** (`popularity_precision_at_k`). Random is the wrong reference here — rosters are dominated by high-minute players, so "recommend whoever appears most" is already a decent guess, and beating *that* is what makes the model worth training. The baseline is scored identically to `precision_at_k`: it drops each team's training items, takes the top 10 by training frequency, divides by k, and averages over team-seasons with at least one held-out interaction.
-
-Both print per era, so `python rec_sys.py` reports the lift rather than leaving it to be quoted from memory.
-
 ### Vector search
 
-`backend/vector_index.py` replaces Chroma at query time, for one hard reason and one soft one.
+`backend/vector_index.py` searches the shipped index (`backend/data/index/`) with numpy rather than Chroma, for one hard reason and one soft one.
 
-**Hard:** `chromadb.PersistentClient` opens SQLite read-write, which fails outright on a Lambda container image (`attempt to write a readonly database` — everything outside `/tmp` is read-only). Copying 69 MB into `/tmp` on every cold start would work but buys nothing.
+**Hard:** `chromadb.PersistentClient` opens SQLite read-write, which fails outright on a Lambda container image (`attempt to write a readonly database` — everything outside `/tmp` is read-only).
 
-**Soft:** the corpus is 8,640 vectors × 384 dims. A brute-force scan beats an HNSW lookup once index load time is counted — a filtered scan measures ~3 ms. Dropping `chromadb` also removes a ~0.56 s import and its whole dependency tree from the image.
+**Soft:** the corpus is ~10,300 vectors × 512 dims. A brute-force scan beats an HNSW lookup once index load time is counted — a filtered scan measures ~3 ms.
 
 Search reproduces Chroma's default metric (squared L2) and returns byte-identical top-k to the collections it replaced. It skips the `||q||²` term (constant across candidates, so it cannot change the ranking), precomputes `||e||²` to avoid materializing a 12 MB difference array per call, and uses `argpartition` to get O(N) selection with only the k-head sorted.
 
+The vectors are Amazon Titan Text Embeddings v2 (512 dims, unit length, so squared L2 ranks as cosine does). `python build_ask_index.py` writes them, and records the model and dimensions in `backend/data/index/index_info.json`. `rag.py` embeds each question with that same model, and `vector_index.py` refuses an index whose dimensions disagree. The build re-embeds the chunk text stored in the index metadata. The scripts that first wrote that text read the retired LightFM pipeline and are in `local_archive/`, so the chunks themselves are frozen; refreshing them from current data would need a new chunk builder.
+
 ### Cold-start behavior
 
-Everything expensive loads lazily: the vector index, the ONNX embedder, the similarity model, and the LightFM models. A cold start that only serves `/health` or `/recommendations` never pays to build an embedding session it does not use.
-
-The embedding weights (`BAAI/bge-small-en-v1.5`) are **baked into the image** at build time. Without that, `fastembed` caches into `tempfile.gettempdir()` — `/tmp`, which is wiped between cold starts — so every cold start would re-pull ~65 MB from HuggingFace, adding ~3 s and failing outright in a VPC with no NAT gateway. `rag.py` reads the baked cache with `local_files_only=True`, falling back to the normal download path in dev when no cache is present.
+Everything expensive loads lazily: the vector index and the similarity model. Recommendations are a CSV lookup, and there is no embedding model to load at all — each `/ask` makes one Titan call to embed the question (tens of milliseconds) before the answer call. That replaced a local ONNX model (`fastembed`, `BAAI/bge-small-en-v1.5`), whose weights had to be baked into the image and whose session cost seconds on a cold start.
 
 ### Image layout
 
-Stages are `deps` -> `builder`/`test` -> runtime, so `gcc`/`libc6-dev` — needed only to compile lightfm — never reach the final image. A smaller image means less to lazy-fetch from ECR on a cold start. `test` branches off `deps` so CI reuses the compiled dependencies without paying for the fastembed weight download.
+Stages are `deps` -> `prune`/`test` -> runtime. Every dependency installs from a wheel, so there is no compiler or system library in any stage. `prune` strips pip and setuptools from the virtualenv before the runtime copies it (deleting them in a later runtime layer would only hide them), and `test` adds pytest on top of the same dependency layer.
 
-The runtime stage still installs `libgomp1`: lightfm's extension is compiled against OpenMP in the builder, so without it `import lightfm` dies with `libgomp.so.1: cannot open shared object file`.
-
-**`LIGHTFM_NO_CFLAGS=1` is set in `deps` and must stay set.** lightfm's `setup.py` otherwise compiles its extension with `-march=native`, targeting the exact CPU of the build machine. The resulting binary dies with SIGILL (exit 132) on any host missing those instructions, and nothing catches it earlier — the import succeeds and the process is killed mid-prediction. That breaks two things: a restored CI build cache, where the layer was compiled on a different runner, and any image built on one machine to run on another, which is precisely the laptop-to-Lambda path. Measured cost of the portable build is ~5% on a ~1 ms scoring call. The opt-out also drops `-ffast-math`, whose relaxed IEEE semantics are not something this project wants.
+Retiring LightFM (and with it `gcc`, `libgomp1`, `joblib` and `scikit-learn`) took the runtime image from 761 MB to 551 MB. Moving the Ask tab's embeddings to Bedrock (dropping `fastembed`, `onnxruntime`, `sympy`, `tokenizers`, Pillow and the 65 MB of weights) and pruning pip took it further, to the size given in `HANDOFF.md`. That is less to lazy-fetch from ECR on a cold start.
 
 
 ## Project structure
 
 ```
 backend/
-  app.py              FastAPI routes + CORS + static mount
+  app.py              FastAPI routes + CORS
   lambda_handler.py   Mangum wrapper (Lambda entrypoint)
-  inference.py        recommendation + explanation logic
+  recommender.py      serves data/recs.csv
   rag.py              retrieval, prompt construction, Bedrock call
   similarity.py       era-z-scored stat comps
-  vector_index.py     numpy brute-force search (runtime)
-  export_index.py     chroma_db -> data/index/ (build-time only)
-  helper.py           model (de)serialization
-  data/index/         exported embeddings + metadata (shipped)
-  static/cluster/     PCA plots, cluster counts
+  vector_index.py     numpy brute-force search
+  data/recs.csv       precomputed lists (export_recs.py)
+  data/index/         Ask embeddings (Titan) + metadata + index_info.json (shipped)
+  data/players.csv    Ask player table
   Dockerfile          Lambda container image: deps -> builder/test -> runtime
-  requirements.txt        runtime deps
-  requirements-build.txt  + chromadb, offline only
-  requirements-dev.txt    + pytest/ruff, never shipped
 
-data/                 raw Basketball-Reference CSVs
-player_cluster.py     player archetype clustering & visuals
-team_cluster.py       team archetype clustering & visuals
-rec_sys.py            per-era LightFM training -> models_all.joblib
-chunk_data.py         stat rows -> natural-language chunks
-embed_chunks.py       chunks -> fastembed -> chroma_db
-helper.py             era mapping, team canonicalization, model I/O
-docker-compose.yml    backend + frontend for local dev
+impact_model.py       lineup ridge: player impact per season
+lineup_features.py    5-man lineup panel from pbpstats
+impact_recs.py        projection, salary screen, scoring -> data/recs_impact.csv
+acquisition.py        P(team acquires player)
+export_recs.py        -> backend/data/recs.csv (vetoes and review flags applied)
+rubric.py             grading on availability, value accuracy, specificity; holdout log
+audit.py              veto-rule audit, screen audit, review judgments
+review_app.py         local review page (review_ui.html)
+build_ask_index.py    embeds the Ask index with Titan (Bedrock)
+evaluate_recs.py      older realism / quality report
+player_seasons.py, contract_status.py, destination.py, weakness_test.py,
+team_style.py, fit_model.py, fetch_*.py    inputs and analyses (see HANDOFF.md)
+data/                 Basketball-Reference CSVs, salaries, payroll, transactions
 nba-recs-frontend/    Next.js 15 / React 19 / Tailwind 4 UI
 ```
 
 
 ## Notes & tips
 
-- The recommender relies on Basketball-Reference player IDs (e.g. `wrighde01`); headshot URLs are constructed to match.
-- When adding cluster labels, make sure `backend/static/cluster/` contains matching `player_<slug>.png` / `team_<slug>.png`, or the frontend cards render empty.
-- `player_cluster.py`, `team_cluster.py`, and `rec_sys.py` each take a couple of minutes — worth running under screen/tmux.
+- Player IDs are Basketball-Reference IDs (e.g. `wrighde01`); headshot URLs are constructed to match.
 - `backend/compare.py` is a one-off benchmark used to pick the Bedrock model wired into `rag.py`. It is gitignored and not part of the deployed app.
-- If `vector_index` raises `FileNotFoundError`, the index was never exported — run `python backend/export_index.py`. If it raises a row-count mismatch, `chroma_db` and `data/index/` have drifted; re-export.
+- If `vector_index` raises `FileNotFoundError`, `backend/data/index/` is missing from the checkout.

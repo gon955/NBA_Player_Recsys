@@ -21,8 +21,8 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://nba-recs.pages.dev"
 
 const title = "NBA Player Recommender";
 const description =
-  "Era-aware NBA roster recommendations, player archetype clusters, and grounded " +
-  "natural-language answers over 1999-2025 player and team data.";
+  "Which players would make an NBA team better next season, among moves it could " +
+  "actually make, plus grounded natural-language answers over 1999-2025 player and team data.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
         url: "/og.png",
         width: 1200,
         height: 630,
-        alt: "NBA Player Recommender — era-aware recommendations, archetype clusters, and grounded Q&A",
+        alt: "NBA Player Recommender — realistic roster recommendations and grounded Q&A",
       },
     ],
   },

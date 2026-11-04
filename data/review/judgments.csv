@@ -1,0 +1,425 @@
+season,TeamId,player_id,verdict,reason,notes,team,player,age,bpm,salary_pct_cap,rookie_deal,replaces,also_sends,updated
+2025,1610612737,barneha02,ok,,,Atlanta Hawks,Harrison Barnes,32.0,0.0,12.8,,Georges Niang,Larry Nance Jr.,2026-10-31T14:49:13
+2025,1610612737,bouchch01,ok,,,Atlanta Hawks,Chris Boucher,32.0,2.3,7.7,,Garrison Mathews,Georges Niang,2026-10-31T15:13:16
+2025,1610612737,collijo01,ok,,,Atlanta Hawks,John Collins,27.0,1.0,18.9,,Garrison Mathews,De'Andre Hunter,2026-10-31T14:49:13
+2025,1610612737,finnedo01,ok,,,Atlanta Hawks,Dorian Finney-Smith,31.0,-1.0,10.6,,Garrison Mathews,Larry Nance Jr.,2026-10-31T15:13:16
+2025,1610612737,foxde01,ok,,,Atlanta Hawks,De'Aaron Fox,27.0,0.4,24.8,,Clint Capela,Georges Niang,2026-10-31T14:49:13
+2025,1610612737,georgpa01,ok,,,Atlanta Hawks,Paul George,34.0,-0.4,35.0,,De'Andre Hunter,Clint Capela,2026-10-31T14:49:13
+2025,1610612737,huertke01,ok,,,Atlanta Hawks,Kevin Huerter,26.0,-2.0,12.0,,Zaccharie Risacher,Mouhamed Gueye,2026-10-31T14:49:13
+2025,1610612737,mccolcj01,ok,,,Atlanta Hawks,CJ McCollum,33.0,-1.4,23.7,,Georges Niang,De'Andre Hunter,2026-10-31T14:49:13
+2025,1610612737,mccontj01,ok,,,Atlanta Hawks,T.J. McConnell,32.0,1.2,6.6,,Vit Krejci,Georges Niang,2026-10-31T14:49:13
+2025,1610612737,nurkiju01,ok,,,Atlanta Hawks,Jusuf Nurkić,30.0,-1.3,12.9,,Bogdan Bogdanović,,2026-10-31T15:13:16
+2025,1610612737,onealro01,ok,,,Atlanta Hawks,Royce O'Neale,31.0,0.1,6.7,,Georges Niang,,2026-10-31T14:49:13
+2025,1610612737,powelno01,ok,,,Atlanta Hawks,Norman Powell,31.0,1.5,13.7,,Garrison Mathews,Caris LeVert,2026-10-31T15:13:16
+2025,1610612737,robindu01,ok,,,Atlanta Hawks,Duncan Robinson,30.0,-1.7,13.8,,Georges Niang,Larry Nance Jr.,2026-10-31T14:49:13
+2025,1610612737,simonan01,ok,,,Atlanta Hawks,Anfernee Simons,25.0,-0.1,18.4,,Garrison Mathews,De'Andre Hunter,2026-10-31T14:49:13
+2025,1610612737,vucevni01,ok,,,Atlanta Hawks,Nikola Vučević,34.0,2.6,14.2,,Terance Mann,Georges Niang,2026-10-31T15:13:16
+2025,1610612738,antetgi01,ok,,,Boston Celtics,Giannis Antetokounmpo,30.0,9.5,34.7,,Derrick White,Kristaps Porziņģis,2026-10-31T14:49:13
+2025,1610612738,brunsja01,flag,star_wont_move,,Boston Celtics,Jalen Brunson,28.0,3.3,17.8,,Luke Kornet,Jrue Holiday,2026-10-31T14:49:13
+2025,1610612738,claxtni01,ok,,,Boston Celtics,Nic Claxton,25.0,0.4,19.6,,Jaylen Brown,,2026-10-31T14:49:13
+2025,1610612738,conlemi01,ok,,,Boston Celtics,Mike Conley,37.0,1.2,7.1,,Jrue Holiday,,2026-10-31T15:13:16
+2025,1610612738,davisan02,ok,,,Boston Celtics,Anthony Davis,31.0,5.4,30.7,,Al Horford,Jrue Holiday,2026-10-31T14:49:13
+2025,1610612738,foxde01,ok,,,Boston Celtics,De'Aaron Fox,27.0,0.4,24.8,,Neemias Queta,Jrue Holiday,2026-10-31T14:49:13
+2025,1610612738,georgpa01,ok,,,Boston Celtics,Paul George,34.0,-0.4,35.0,,Jaylen Brown,,2026-10-31T14:49:13
+2025,1610612738,goberru01,ok,,,Boston Celtics,Rudy Gobert,32.0,1.9,31.2,,Jaylen Brown,,2026-10-31T14:49:13
+2025,1610612738,mccontj01,ok,,,Boston Celtics,T.J. McConnell,32.0,1.2,6.6,,Jrue Holiday,,2026-10-31T14:49:13
+2025,1610612738,poeltja01,ok,,,Boston Celtics,Jakob Poeltl,29.0,2.0,13.9,,Jrue Holiday,,2026-10-31T15:13:16
+2025,1610612738,turnemy01,ok,,,Boston Celtics,Myles Turner,28.0,0.4,14.2,,Neemias Queta,Jaylen Brown,2026-10-31T14:49:13
+2025,1610612738,vucevni01,ok,,,Boston Celtics,Nikola Vučević,34.0,2.6,14.2,,Jrue Holiday,,2026-10-31T14:49:13
+2025,1610612739,anderky01,ok,,,Cleveland Cavaliers,Kyle Anderson,31.0,1.5,6.2,,Georges Niang,,2026-10-31T15:13:17
+2025,1610612739,antetgi01,ok,,,Cleveland Cavaliers,Giannis Antetokounmpo,30.0,9.5,34.7,,Evan Mobley,Donovan Mitchell,2026-10-31T14:49:13
+2025,1610612739,coffeam01,ok,,,Cleveland Cavaliers,Amir Coffey,27.0,-1.7,2.8,,Georges Niang,,2026-10-31T14:49:13
+2025,1610612739,collijo01,ok,,,Cleveland Cavaliers,John Collins,27.0,1.0,18.9,,Georges Niang,De'Andre Hunter,2026-10-31T14:49:13
+2025,1610612739,hausesa01,ok,,,Cleveland Cavaliers,Sam Hauser,27.0,0.8,1.5,,Sam Merrill,,2026-10-31T14:49:13
+2025,1610612739,highsha01,ok,,,Cleveland Cavaliers,Haywood Highsmith,28.0,-1.9,3.7,,Georges Niang,,2026-10-31T14:49:13
+2025,1610612739,marshna01,ok,,,Cleveland Cavaliers,Naji Marshall,27.0,-0.8,6.1,,Georges Niang,,2026-10-31T15:13:17
+2025,1610612739,martico01,ok,,,Cleveland Cavaliers,Cody Martin,29.0,-1.7,5.8,,Georges Niang,,2026-10-31T14:49:13
+2025,1610612739,mccontj01,ok,,,Cleveland Cavaliers,T.J. McConnell,32.0,1.2,6.6,,Isaac Okoro,,2026-10-31T14:49:13
+2025,1610612739,onealro01,ok,,,Cleveland Cavaliers,Royce O'Neale,31.0,0.1,6.7,,Georges Niang,,2026-10-31T14:49:13
+2025,1610612739,oubreke01,ok,,,Cleveland Cavaliers,Kelly Oubre Jr.,29.0,-2.3,5.7,,Georges Niang,,2026-10-31T14:49:13
+2025,1610612739,sextoco01,ok,,,Cleveland Cavaliers,Collin Sexton,26.0,-0.6,13.1,,Georges Niang,Isaac Okoro,2026-10-31T14:49:13
+2025,1610612739,valanjo01,ok,,,Cleveland Cavaliers,Jonas Valančiūnas,32.0,0.6,7.0,,Isaac Okoro,,2026-10-31T15:13:17
+2025,1610612739,willike04,ok,,,Cleveland Cavaliers,Kenrich Williams,30.0,0.6,4.7,,Georges Niang,,2026-10-31T15:13:17
+2025,1610612740,alexani01,ok,,,New Orleans Pelicans,Nickeil Alexander-Walker,26.0,-0.4,3.1,,Jordan Hawkins,,2026-10-31T15:13:19
+2025,1610612740,bealbr01,ok,,,New Orleans Pelicans,Bradley Beal,31.0,-1.1,35.7,,Herbert Jones,Brandon Ingram,2026-10-31T15:13:19
+2025,1610612740,bogdabo01,ok,,,New Orleans Pelicans,Bogdan Bogdanović,32.0,-2.0,12.3,,Jordan Hawkins,Kelly Olynyk,2026-10-31T14:49:13
+2025,1610612740,cartewe01,ok,,,New Orleans Pelicans,Wendell Carter Jr.,25.0,-1.2,8.5,,Herbert Jones,,2026-10-31T14:49:13
+2025,1610612740,looneke01,ok,,,New Orleans Pelicans,Kevon Looney,28.0,0.3,5.7,,Yves Missi,Jordan Hawkins,2026-10-31T14:49:13
+2025,1610612740,mannte01,ok,,,New Orleans Pelicans,Terance Mann,28.0,-1.3,8.1,,Brandon Boston Jr.,Kelly Olynyk,2026-10-31T15:13:19
+2025,1610612740,mccontj01,ok,,,New Orleans Pelicans,T.J. McConnell,32.0,1.2,6.6,,Herbert Jones,,2026-10-31T14:49:13
+2025,1610612740,nurkiju01,ok,,,New Orleans Pelicans,Jusuf Nurkić,30.0,-1.3,12.9,,Jordan Hawkins,Kelly Olynyk,2026-10-31T14:49:13
+2025,1610612740,paulch01,ok,,,New Orleans Pelicans,Chris Paul,39.0,0.8,7.4,,Herbert Jones,,2026-10-31T15:13:19
+2025,1610612740,paytoga02,ok,,,New Orleans Pelicans,Gary Payton II,32.0,1.4,6.5,,Yves Missi,Jordan Hawkins,2026-10-31T14:49:13
+2025,1610612740,richani01,ok,,,New Orleans Pelicans,Nick Richards,27.0,-3.3,3.6,,Yves Missi,Mo Bamba,2026-10-31T15:13:19
+2025,1610612740,sextoco01,ok,,,New Orleans Pelicans,Collin Sexton,26.0,-0.6,13.1,,Jordan Hawkins,Kelly Olynyk,2026-10-31T14:49:13
+2025,1610612740,simonan01,ok,,,New Orleans Pelicans,Anfernee Simons,25.0,-0.1,18.4,,Herbert Jones,Kelly Olynyk,2026-10-31T14:49:13
+2025,1610612740,valanjo01,ok,,,New Orleans Pelicans,Jonas Valančiūnas,32.0,0.6,7.0,,Herbert Jones,,2026-10-31T14:49:13
+2025,1610612740,vucevni01,ok,,,New Orleans Pelicans,Nikola Vučević,34.0,2.6,14.2,,Jordan Hawkins,Kelly Olynyk,2026-10-31T14:49:13
+2025,1610612741,antetgi01,flag,team_direction,,Chicago Bulls,Giannis Antetokounmpo,30.0,9.5,34.7,,Josh Giddey,Zach LaVine,2026-10-31T14:49:13
+2025,1610612741,bogdabo01,ok,,,Chicago Bulls,Bogdan Bogdanović,32.0,-2.0,12.3,,Patrick Williams,,2026-10-31T14:49:13
+2025,1610612741,bridgmi02,ok,,,Chicago Bulls,Miles Bridges,26.0,1.8,19.3,,Coby White,Zach Collins,2026-10-31T14:49:13
+2025,1610612741,cartewe01,ok,,,Chicago Bulls,Wendell Carter Jr.,25.0,-1.2,8.5,,Talen Horton-Tucker,Tre Jones,2026-10-31T15:13:17
+2025,1610612741,coffeam01,ok,,,Chicago Bulls,Amir Coffey,27.0,-1.7,2.8,,Patrick Williams,,2026-10-31T14:49:13
+2025,1610612741,collijo01,ok,,,Chicago Bulls,John Collins,27.0,1.0,18.9,,Ayo Dosunmu,Zach Collins,2026-10-31T14:49:13
+2025,1610612741,finnedo01,ok,,,Chicago Bulls,Dorian Finney-Smith,31.0,-1.0,10.6,,Dalen Terry,Tre Jones,2026-10-31T15:13:17
+2025,1610612741,georgpa01,flag,team_direction,,Chicago Bulls,Paul George,34.0,-0.4,35.0,,Matas Buzelis,Zach LaVine,2026-10-31T14:49:13
+2025,1610612741,johnske04,ok,,,Chicago Bulls,Keldon Johnson,25.0,-1.6,13.5,,Julian Phillips,Zach Collins,2026-10-31T15:13:17
+2025,1610612741,martico01,ok,,,Chicago Bulls,Cody Martin,29.0,-1.7,5.8,,Patrick Williams,,2026-10-31T15:13:17
+2025,1610612741,onealro01,ok,,,Chicago Bulls,Royce O'Neale,31.0,0.1,6.7,,Dalen Terry,Matas Buzelis,2026-10-31T14:49:13
+2025,1610612741,portibo01,ok,,,Chicago Bulls,Bobby Portis,29.0,0.2,8.9,,Talen Horton-Tucker,Tre Jones,2026-10-31T15:13:17
+2025,1610612741,powelno01,ok,,,Chicago Bulls,Norman Powell,31.0,1.5,13.7,,Talen Horton-Tucker,Zach Collins,2026-10-31T14:49:13
+2025,1610612741,robindu01,ok,,,Chicago Bulls,Duncan Robinson,30.0,-1.7,13.8,,Patrick Williams,,2026-10-31T14:49:13
+2025,1610612741,sextoco01,ok,,,Chicago Bulls,Collin Sexton,26.0,-0.6,13.1,,Julian Phillips,Zach Collins,2026-10-31T14:49:13
+2025,1610612741,strusma01,ok,,,Chicago Bulls,Max Strus,28.0,1.3,10.8,,Talen Horton-Tucker,Coby White,2026-10-31T15:13:17
+2025,1610612741,washipj01,ok,,,Chicago Bulls,P.J. Washington,26.0,-0.9,11.0,,Patrick Williams,,2026-10-31T15:13:17
+2025,1610612742,barneha02,ok,,,Dallas Mavericks,Harrison Barnes,32.0,0.0,12.8,,Maxi Kleber,Dwight Powell,2026-10-31T14:49:13
+2025,1610612742,coffeam01,ok,,,Dallas Mavericks,Amir Coffey,27.0,-1.7,2.8,,Jaden Hardy,Markieff Morris,2026-10-31T14:49:13
+2025,1610612742,collijo01,ok,,,Dallas Mavericks,John Collins,27.0,1.0,18.9,,Maxi Kleber,P.J. Washington,2026-10-31T14:49:13
+2025,1610612742,finnedo01,ok,,,Dallas Mavericks,Dorian Finney-Smith,31.0,-1.0,10.6,,Max Christie,Caleb Martin,2026-10-31T14:49:13
+2025,1610612742,georgpa01,ok,,,Dallas Mavericks,Paul George,34.0,-0.4,35.0,,Max Christie,Anthony Davis,2026-10-31T14:49:13
+2025,1610612742,huertke01,ok,,,Dallas Mavericks,Kevin Huerter,26.0,-2.0,12.0,,Max Christie,Caleb Martin,2026-10-31T15:13:17
+2025,1610612742,johnsca02,ok,,,Dallas Mavericks,Cameron Johnson,28.0,3.1,16.0,,Quentin Grimes,P.J. Washington,2026-10-31T14:49:13
+2025,1610612742,johnske04,ok,,,Dallas Mavericks,Keldon Johnson,25.0,-1.6,13.5,,Max Christie,Caleb Martin,2026-10-31T14:49:13
+2025,1610612742,martico01,ok,,,Dallas Mavericks,Cody Martin,29.0,-1.7,5.8,,Maxi Kleber,,2026-10-31T14:49:13
+2025,1610612742,onealro01,ok,,,Dallas Mavericks,Royce O'Neale,31.0,0.1,6.7,,Spencer Dinwiddie,Max Christie,2026-10-31T14:49:13
+2025,1610612742,powelno01,ok,,,Dallas Mavericks,Norman Powell,31.0,1.5,13.7,,Spencer Dinwiddie,P.J. Washington,2026-10-31T15:13:17
+2025,1610612742,robindu01,ok,,,Dallas Mavericks,Duncan Robinson,30.0,-1.7,13.8,,Maxi Kleber,Max Christie,2026-10-31T14:49:13
+2025,1610612742,willizi02,ok,,,Dallas Mavericks,Ziaire Williams,23.0,-2.3,4.4,yes,Jaden Hardy,Olivier-Maxence Prosper,2026-10-31T15:13:17
+2025,1610612743,bogdabo01,ok,,,Denver Nuggets,Bogdan Bogdanović,32.0,-2.0,12.3,,Zeke Nnaji,Dario Šarić,2026-10-31T14:49:13
+2025,1610612743,bookede01,ok,,,Denver Nuggets,Devin Booker,28.0,0.4,35.0,,Zeke Nnaji,Michael Porter Jr.,2026-10-31T14:49:13
+2025,1610612743,coffeam01,ok,,,Denver Nuggets,Amir Coffey,27.0,-1.7,2.8,,Julian Strawther,Trey Alexander,2026-10-31T14:49:13
+2025,1610612743,foxde01,ok,,,Denver Nuggets,De'Aaron Fox,27.0,0.4,24.8,,Michael Porter Jr.,,2026-10-31T14:49:13
+2025,1610612743,georgpa01,ok,,,Denver Nuggets,Paul George,34.0,-0.4,35.0,,Zeke Nnaji,Michael Porter Jr.,2026-10-31T14:49:13
+2025,1610612743,johnsca02,ok,,,Denver Nuggets,Cameron Johnson,28.0,3.1,16.0,,Aaron Gordon,,2026-10-31T14:49:13
+2025,1610612743,mccontj01,ok,,,Denver Nuggets,T.J. McConnell,32.0,1.2,6.6,,Zeke Nnaji,,2026-10-31T14:49:13
+2025,1610612743,onealro01,ok,,,Denver Nuggets,Royce O'Neale,31.0,0.1,6.7,,Zeke Nnaji,,2026-10-31T14:49:13
+2025,1610612743,paytoga02,ok,,,Denver Nuggets,Gary Payton II,32.0,1.4,6.5,,Zeke Nnaji,,2026-10-31T14:49:13
+2025,1610612743,powelno01,ok,,,Denver Nuggets,Norman Powell,31.0,1.5,13.7,,Michael Porter Jr.,,2026-10-31T15:13:17
+2025,1610612743,russeda01,ok,,,Denver Nuggets,D'Angelo Russell,28.0,-0.4,13.3,,Michael Porter Jr.,,2026-10-31T15:13:17
+2025,1610612743,sextoco01,ok,,,Denver Nuggets,Collin Sexton,26.0,-0.6,13.1,,Michael Porter Jr.,,2026-10-31T14:49:13
+2025,1610612743,simmobe01,ok,,,Denver Nuggets,Ben Simmons,28.0,-0.5,27.9,,Russell Westbrook,Michael Porter Jr.,2026-10-31T15:13:17
+2025,1610612744,antetgi01,ok,,,Golden State Warriors,Giannis Antetokounmpo,30.0,9.5,34.7,,Trayce Jackson-Davis,Jimmy Butler,2026-10-31T14:49:13
+2025,1610612744,aytonde01,ok,,,Golden State Warriors,Deandre Ayton,26.0,-0.7,24.2,,Buddy Hield,Andrew Wiggins,2026-10-31T15:13:17
+2025,1610612744,bogdabo01,ok,,,Golden State Warriors,Bogdan Bogdanović,32.0,-2.0,12.3,,Dennis Schröder,Kyle Anderson,2026-10-31T14:49:13
+2025,1610612744,bouchch01,ok,,,Golden State Warriors,Chris Boucher,32.0,2.3,7.7,,Lindy Waters III,Kyle Anderson,2026-10-31T15:13:17
+2025,1610612744,foxde01,ok,,,Golden State Warriors,De'Aaron Fox,27.0,0.4,24.8,,Buddy Hield,Andrew Wiggins,2026-10-31T14:49:13
+2025,1610612744,georgpa01,ok,,,Golden State Warriors,Paul George,34.0,-0.4,35.0,,Dennis Schröder,Andrew Wiggins,2026-10-31T14:49:13
+2025,1610612744,jeromty01,ok,,,Golden State Warriors,Ty Jerome,27.0,4.3,1.8,,Quinten Post,Gui Santos,2026-10-31T14:49:13
+2025,1610612744,mccolcj01,ok,,,Golden State Warriors,CJ McCollum,33.0,-1.4,23.7,,Buddy Hield,Andrew Wiggins,2026-10-31T14:49:13
+2025,1610612744,mccontj01,ok,,,Golden State Warriors,T.J. McConnell,32.0,1.2,6.6,,Gary Payton II,,2026-10-31T14:49:13
+2025,1610612744,murraja01,ok,,,Golden State Warriors,Jamal Murray,27.0,0.8,25.6,,Dennis Schröder,Draymond Green,2026-10-31T15:13:17
+2025,1610612744,onealro01,ok,,,Golden State Warriors,Royce O'Neale,31.0,0.1,6.7,,Buddy Hield,,2026-10-31T14:49:13
+2025,1610612744,poolejo01,ok,,,Golden State Warriors,Jordan Poole,25.0,0.4,21.1,,Dennis Schröder,De'Anthony Melton,2026-10-31T15:13:17
+2025,1610612744,powelno01,ok,,,Golden State Warriors,Norman Powell,31.0,1.5,13.7,,Buddy Hield,Kyle Anderson,2026-10-31T14:49:13
+2025,1610612744,russeda01,ok,,,Golden State Warriors,D'Angelo Russell,28.0,-0.4,13.3,,Buddy Hield,Kyle Anderson,2026-10-31T15:13:17
+2025,1610612744,simmobe01,ok,,,Golden State Warriors,Ben Simmons,28.0,-0.5,27.9,,Dennis Schröder,Andrew Wiggins,2026-10-31T14:49:13
+2025,1610612745,alexani01,ok,,,Houston Rockets,Nickeil Alexander-Walker,26.0,-0.4,3.1,,Aaron Holiday,,2026-10-31T14:49:13
+2025,1610612745,allengr01,ok,,,Houston Rockets,Grayson Allen,29.0,-0.3,11.1,,Jae'Sean Tate,Jeff Green,2026-10-31T15:13:18
+2025,1610612745,bogdabo01,ok,,,Houston Rockets,Bogdan Bogdanović,32.0,-2.0,12.3,,Dillon Brooks,,2026-10-31T14:49:13
+2025,1610612745,hieldbu01,ok,,,Houston Rockets,Buddy Hield,32.0,-1.0,6.2,,Jae'Sean Tate,,2026-10-31T14:49:13
+2025,1610612745,mccolcj01,ok,,,Houston Rockets,CJ McCollum,33.0,-1.4,23.7,,Jae'Sean Tate,Dillon Brooks,2026-10-31T14:49:13
+2025,1610612745,mccontj01,ok,,,Houston Rockets,T.J. McConnell,32.0,1.2,6.6,,Jabari Smith Jr.,,2026-10-31T14:49:13
+2025,1610612745,nembhan01,ok,,,Houston Rockets,Andrew Nembhard,25.0,-2.3,1.4,,Dillon Brooks,,2026-10-31T14:49:13
+2025,1610612745,onealro01,ok,,,Houston Rockets,Royce O'Neale,31.0,0.1,6.7,,Jae'Sean Tate,,2026-10-31T14:49:13
+2025,1610612745,paytoga02,ok,,,Houston Rockets,Gary Payton II,32.0,1.4,6.5,,Reed Sheppard,,2026-10-31T14:49:13
+2025,1610612745,powelno01,ok,,,Houston Rockets,Norman Powell,31.0,1.5,13.7,,Reed Sheppard,Jae'Sean Tate,2026-10-31T15:13:18
+2025,1610612745,russeda01,ok,,,Houston Rockets,D'Angelo Russell,28.0,-0.4,13.3,,Aaron Holiday,Steven Adams,2026-10-31T14:49:13
+2025,1610612745,schrode01,ok,,,Houston Rockets,Dennis Schröder,31.0,-2.2,9.3,,Dillon Brooks,,2026-10-31T15:13:18
+2025,1610612745,sextoco01,ok,,,Houston Rockets,Collin Sexton,26.0,-0.6,13.1,,Jae'Sean Tate,Jeff Green,2026-10-31T14:49:13
+2025,1610612746,barneha02,ok,,,Los Angeles Clippers,Harrison Barnes,32.0,0.0,12.8,,Amir Coffey,Ben Simmons,2026-10-31T14:49:13
+2025,1610612746,bookede01,flag,star_wont_move;team_direction,,Los Angeles Clippers,Devin Booker,28.0,0.4,35.0,,Derrick Jones Jr.,Ben Simmons,2026-10-31T14:49:13
+2025,1610612746,collijo01,ok,,,Los Angeles Clippers,John Collins,27.0,1.0,18.9,,Terance Mann,Bogdan Bogdanović,2026-10-31T14:49:13
+2025,1610612746,finnedo01,ok,,,Los Angeles Clippers,Dorian Finney-Smith,31.0,-1.0,10.6,,Amir Coffey,Terance Mann,2026-10-31T15:13:18
+2025,1610612746,georgpa01,ok,,,Los Angeles Clippers,Paul George,34.0,-0.4,35.0,,Derrick Jones Jr.,Ben Simmons,2026-10-31T14:49:13
+2025,1610612746,grantje01,ok,,,Los Angeles Clippers,Jerami Grant,30.0,-1.6,21.2,,Amir Coffey,Ben Simmons,2026-10-31T14:49:13
+2025,1610612746,huertke01,ok,,,Los Angeles Clippers,Kevin Huerter,26.0,-2.0,12.0,,Amir Coffey,Terance Mann,2026-10-31T14:49:13
+2025,1610612746,martico01,ok,,,Los Angeles Clippers,Cody Martin,29.0,-1.7,5.8,,Amir Coffey,Patrick Baldwin Jr.,2026-10-31T14:49:13
+2025,1610612746,onealro01,ok,,,Los Angeles Clippers,Royce O'Neale,31.0,0.1,6.7,,Derrick Jones Jr.,,2026-10-31T14:49:13
+2025,1610612746,robindu01,ok,,,Los Angeles Clippers,Duncan Robinson,30.0,-1.7,13.8,,Amir Coffey,Ben Simmons,2026-10-31T14:49:13
+2025,1610612746,thompkl01,flag,bad_contract,,Los Angeles Clippers,Klay Thompson,34.0,-1.0,11.3,,Amir Coffey,Terance Mann,2026-10-31T14:49:13
+2025,1610612746,wiggian01,ok,,,Los Angeles Clippers,Andrew Wiggins,29.0,0.9,18.7,,Amir Coffey,Ben Simmons,2026-10-31T15:13:18
+2025,1610612747,balllo01,ok,,,Los Angeles Lakers,Lonzo Ball,27.0,0.2,15.2,,Dalton Knecht,Dorian Finney-Smith,2026-10-31T14:49:13
+2025,1610612747,collijo01,ok,,,Los Angeles Lakers,John Collins,27.0,1.0,18.9,,Max Christie,Dorian Finney-Smith,2026-10-31T15:13:18
+2025,1610612747,foxde01,ok,,,Los Angeles Lakers,De'Aaron Fox,27.0,0.4,24.8,,Dorian Finney-Smith,Rui Hachimura,2026-10-31T14:49:13
+2025,1610612747,hieldbu01,ok,,,Los Angeles Lakers,Buddy Hield,32.0,-1.0,6.2,,Dalton Knecht,Jalen Hood-Schifino,2026-10-31T14:49:13
+2025,1610612747,mccontj01,ok,,,Los Angeles Lakers,T.J. McConnell,32.0,1.2,6.6,,Jaxson Hayes,Max Christie,2026-10-31T14:49:13
+2025,1610612747,murrade01,ok,,,Los Angeles Lakers,Dejounte Murray,28.0,-1.6,21.0,,Gabe Vincent,Dorian Finney-Smith,2026-10-31T15:13:18
+2025,1610612747,nembhan01,ok,,,Los Angeles Lakers,Andrew Nembhard,25.0,-2.3,1.4,,Gabe Vincent,,2026-10-31T14:49:13
+2025,1610612747,nurkiju01,ok,,,Los Angeles Lakers,Jusuf Nurkić,30.0,-1.3,12.9,,Max Christie,Jarred Vanderbilt,2026-10-31T15:13:18
+2025,1610612747,onealro01,ok,,,Los Angeles Lakers,Royce O'Neale,31.0,0.1,6.7,,Jaxson Hayes,Max Christie,2026-10-31T14:49:13
+2025,1610612747,paytoga02,ok,,,Los Angeles Lakers,Gary Payton II,32.0,1.4,6.5,,Jaxson Hayes,Max Christie,2026-10-31T14:49:13
+2025,1610612747,sextoco01,ok,,,Los Angeles Lakers,Collin Sexton,26.0,-0.6,13.1,,Max Christie,Jarred Vanderbilt,2026-10-31T14:49:13
+2025,1610612747,simmobe01,ok,,,Los Angeles Lakers,Ben Simmons,28.0,-0.5,27.9,,Dorian Finney-Smith,Rui Hachimura,2026-10-31T14:49:13
+2025,1610612747,simonan01,ok,,,Los Angeles Lakers,Anfernee Simons,25.0,-0.1,18.4,,Max Christie,Dorian Finney-Smith,2026-10-31T14:49:13
+2025,1610612748,bealbr01,ok,,,Miami Heat,Bradley Beal,31.0,-1.1,35.7,,Terry Rozier,Duncan Robinson,2026-10-31T15:13:18
+2025,1610612748,bogdabo01,ok,,,Miami Heat,Bogdan Bogdanović,32.0,-2.0,12.3,,Davion Mitchell,Kyle Anderson,2026-10-31T14:49:13
+2025,1610612748,collijo01,ok,,,Miami Heat,John Collins,27.0,1.0,18.9,,Pelle Larsson,Terry Rozier,2026-10-31T14:49:13
+2025,1610612748,foxde01,ok,,,Miami Heat,De'Aaron Fox,27.0,0.4,24.8,,Davion Mitchell,Terry Rozier,2026-10-31T14:49:13
+2025,1610612748,mccolcj01,ok,,,Miami Heat,CJ McCollum,33.0,-1.4,23.7,,Davion Mitchell,Terry Rozier,2026-10-31T14:49:13
+2025,1610612748,mccontj01,ok,,,Miami Heat,T.J. McConnell,32.0,1.2,6.6,,Pelle Larsson,Davion Mitchell,2026-10-31T14:49:13
+2025,1610612748,murrade01,ok,,,Miami Heat,Dejounte Murray,28.0,-1.6,21.0,,Jaime Jaquez Jr.,Terry Rozier,2026-10-31T15:13:18
+2025,1610612748,onealro01,ok,,,Miami Heat,Royce O'Neale,31.0,0.1,6.7,,Alec Burks,Davion Mitchell,2026-10-31T14:49:13
+2025,1610612748,paytoga02,ok,,,Miami Heat,Gary Payton II,32.0,1.4,6.5,,Pelle Larsson,Davion Mitchell,2026-10-31T14:49:13
+2025,1610612748,poolejo01,ok,,,Miami Heat,Jordan Poole,25.0,0.4,21.1,,Alec Burks,Terry Rozier,2026-10-31T15:13:18
+2025,1610612748,russeda01,ok,,,Miami Heat,D'Angelo Russell,28.0,-0.4,13.3,,Duncan Robinson,,2026-10-31T15:13:18
+2025,1610612748,sextoco01,ok,,,Miami Heat,Collin Sexton,26.0,-0.6,13.1,,Duncan Robinson,,2026-10-31T14:49:13
+2025,1610612748,simmobe01,ok,,,Miami Heat,Ben Simmons,28.0,-0.5,27.9,,Duncan Robinson,Terry Rozier,2026-10-31T14:49:13
+2025,1610612748,simonan01,ok,,,Miami Heat,Anfernee Simons,25.0,-0.1,18.4,,Davion Mitchell,Duncan Robinson,2026-10-31T14:49:13
+2025,1610612748,strusma01,ok,,,Miami Heat,Max Strus,28.0,1.3,10.8,,Davion Mitchell,Kyle Anderson,2026-10-31T15:13:18
+2025,1610612749,bogdabo01,ok,,,Milwaukee Bucks,Bogdan Bogdanović,32.0,-2.0,12.3,,Andre Jackson Jr.,Kyle Kuzma,2026-10-31T14:49:13
+2025,1610612749,bookede01,flag,star_wont_move;team_direction,,Milwaukee Bucks,Devin Booker,28.0,0.4,35.0,,Bobby Portis,Khris Middleton,2026-10-31T14:49:13
+2025,1610612749,coffeam01,ok,,,Milwaukee Bucks,Amir Coffey,27.0,-1.7,2.8,,Taurean Prince,Tyler Smith,2026-10-31T14:49:13
+2025,1610612749,derozde01,flag,team_direction,,Milwaukee Bucks,DeMar DeRozan,35.0,-0.1,16.6,,Andre Jackson Jr.,Kyle Kuzma,2026-10-31T14:49:13
+2025,1610612749,huertke01,ok,,,Milwaukee Bucks,Kevin Huerter,26.0,-2.0,12.0,,Kyle Kuzma,,2026-10-31T15:13:19
+2025,1610612749,jeffrda01,ok,,,Milwaukee Bucks,DaQuan Jeffries,27.0,-4.7,1.7,,Taurean Prince,,2026-10-31T15:13:19
+2025,1610612749,johnske04,ok,,,Milwaukee Bucks,Keldon Johnson,25.0,-1.6,13.5,,Kyle Kuzma,,2026-10-31T14:49:13
+2025,1610612749,martico01,ok,,,Milwaukee Bucks,Cody Martin,29.0,-1.7,5.8,,Andre Jackson Jr.,Pat Connaughton,2026-10-31T14:49:13
+2025,1610612749,onealro01,ok,,,Milwaukee Bucks,Royce O'Neale,31.0,0.1,6.7,,Andre Jackson Jr.,Pat Connaughton,2026-10-31T14:49:13
+2025,1610612749,paytoga02,ok,,,Milwaukee Bucks,Gary Payton II,32.0,1.4,6.5,,Andre Jackson Jr.,Pat Connaughton,2026-10-31T15:13:19
+2025,1610612749,powelno01,ok,,,Milwaukee Bucks,Norman Powell,31.0,1.5,13.7,,Andre Jackson Jr.,Kyle Kuzma,2026-10-31T15:13:19
+2025,1610612749,robindu01,ok,,,Milwaukee Bucks,Duncan Robinson,30.0,-1.7,13.8,,Kyle Kuzma,,2026-10-31T14:49:13
+2025,1610612749,thompkl01,flag,bad_contract,,Milwaukee Bucks,Klay Thompson,34.0,-1.0,11.3,,Kyle Kuzma,,2026-10-31T14:49:13
+2025,1610612749,wiggian01,ok,,,Milwaukee Bucks,Andrew Wiggins,29.0,0.9,18.7,,Andre Jackson Jr.,Kyle Kuzma,2026-10-31T14:49:13
+2025,1610612750,alvarjo01,ok,,,Minnesota Timberwolves,Jose Alvarado,26.0,-1.4,1.4,,Jaden McDaniels,,2026-10-31T14:49:13
+2025,1610612750,anderky01,ok,,,Minnesota Timberwolves,Kyle Anderson,31.0,1.5,6.2,,Jaden McDaniels,,2026-10-31T15:13:19
+2025,1610612750,balllo01,ok,,,Minnesota Timberwolves,Lonzo Ball,27.0,0.2,15.2,,Jaden McDaniels,,2026-10-31T14:49:13
+2025,1610612750,butleji01,ok,,,Minnesota Timberwolves,Jimmy Butler,35.0,4.9,34.7,,Nickeil Alexander-Walker,Rudy Gobert,2026-10-31T14:49:13
+2025,1610612750,davisan02,ok,,,Minnesota Timberwolves,Anthony Davis,31.0,5.4,30.7,,Mike Conley,Julius Randle,2026-10-31T14:49:13
+2025,1610612750,duranke01,ok,,,Minnesota Timberwolves,Kevin Durant,36.0,3.2,36.4,,Nickeil Alexander-Walker,Rudy Gobert,2026-10-31T14:49:13
+2025,1610612750,foxde01,ok,,,Minnesota Timberwolves,De'Aaron Fox,27.0,0.4,24.8,,Jaden McDaniels,Rob Dillingham,2026-10-31T14:49:13
+2025,1610612750,jonestr01,ok,,,Minnesota Timberwolves,Tre Jones,25.0,1.5,6.5,,Nickeil Alexander-Walker,Bones Hyland,2026-10-31T15:13:19
+2025,1610612750,leonaka01,ok,,,Minnesota Timberwolves,Kawhi Leonard,33.0,3.1,35.0,,Nickeil Alexander-Walker,Rudy Gobert,2026-10-31T14:49:13
+2025,1610612750,lillada01,ok,,,Minnesota Timberwolves,Damian Lillard,34.0,4.0,34.7,,Nickeil Alexander-Walker,Rudy Gobert,2026-10-31T14:49:13
+2025,1610612750,mccontj01,ok,,,Minnesota Timberwolves,T.J. McConnell,32.0,1.2,6.6,,Nickeil Alexander-Walker,Bones Hyland,2026-10-31T14:49:13
+2025,1610612750,nurkiju01,ok,,,Minnesota Timberwolves,Jusuf Nurkić,30.0,-1.3,12.9,,Jaden McDaniels,,2026-10-31T15:13:19
+2025,1610612750,russeda01,ok,,,Minnesota Timberwolves,D'Angelo Russell,28.0,-0.4,13.3,,Jaden McDaniels,,2026-10-31T14:49:13
+2025,1610612750,vucevni01,ok,,,Minnesota Timberwolves,Nikola Vučević,34.0,2.6,14.2,,Jaden McDaniels,,2026-10-31T15:13:19
+2025,1610612751,bantoda01,ok,,,Brooklyn Nets,Dalano Banton,25.0,-0.8,1.6,,Keon Johnson,,2026-10-31T15:13:16
+2025,1610612751,bogdabo01,ok,,,Brooklyn Nets,Bogdan Bogdanović,32.0,-2.0,12.3,,Noah Clowney,Dennis Schröder,2026-10-31T14:49:13
+2025,1610612751,bookede01,flag,team_direction,,Brooklyn Nets,Devin Booker,28.0,0.4,35.0,,D'Angelo Russell,Nic Claxton,2026-10-31T14:49:13
+2025,1610612751,butleja02,ok,,,Brooklyn Nets,Jared Butler,24.0,-1.0,0.5,,Tyrese Martin,,2026-10-31T15:13:16
+2025,1610612751,conlemi01,ok,,,Brooklyn Nets,Mike Conley,37.0,1.2,7.1,,Cam Thomas,Ziaire Williams,2026-10-31T15:13:16
+2025,1610612751,foxde01,flag,star_wont_move;team_direction,,Brooklyn Nets,De'Aaron Fox,27.0,0.4,24.8,,Ziaire Williams,Nic Claxton,2026-10-31T14:49:13
+2025,1610612751,georgpa01,flag,team_direction;age_injury,,Brooklyn Nets,Paul George,34.0,-0.4,35.0,,D'Angelo Russell,Nic Claxton,2026-10-31T14:49:13
+2025,1610612751,jonestr01,ok,,,Brooklyn Nets,Tre Jones,25.0,1.5,6.5,,Trendon Watford,Ziaire Williams,2026-10-31T15:13:16
+2025,1610612751,mccolcj01,ok,,,Brooklyn Nets,CJ McCollum,33.0,-1.4,23.7,,D'Angelo Russell,Dennis Schröder,2026-10-31T14:49:13
+2025,1610612751,mccontj01,ok,,,Brooklyn Nets,T.J. McConnell,32.0,1.2,6.6,,Trendon Watford,Ziaire Williams,2026-10-31T14:49:13
+2025,1610612751,onealro01,ok,,,Brooklyn Nets,Royce O'Neale,31.0,0.1,6.7,,Noah Clowney,Ziaire Williams,2026-10-31T14:49:13
+2025,1610612751,paulch01,ok,,,Brooklyn Nets,Chris Paul,39.0,0.8,7.4,,Noah Clowney,Ziaire Williams,2026-10-31T15:13:16
+2025,1610612751,paytoga02,ok,,,Brooklyn Nets,Gary Payton II,32.0,1.4,6.5,,Noah Clowney,Ziaire Williams,2026-10-31T14:49:13
+2025,1610612751,sextoco01,ok,,,Brooklyn Nets,Collin Sexton,26.0,-0.6,13.1,,D'Angelo Russell,,2026-10-31T14:49:13
+2025,1610612751,simonan01,ok,,,Brooklyn Nets,Anfernee Simons,25.0,-0.1,18.4,,Nic Claxton,,2026-10-31T14:49:13
+2025,1610612752,antetgi01,ok,,,New York Knicks,Giannis Antetokounmpo,30.0,9.5,34.7,,Jalen Brunson,Mitchell Robinson,2026-10-31T14:49:13
+2025,1610612752,barneha02,ok,,,New York Knicks,Harrison Barnes,32.0,0.0,12.8,,Landry Shamet,Mitchell Robinson,2026-10-31T14:49:13
+2025,1610612752,bogdabo01,ok,,,New York Knicks,Bogdan Bogdanović,32.0,-2.0,12.3,,Precious Achiuwa,P.J. Tucker,2026-10-31T14:49:13
+2025,1610612752,finnedo01,ok,,,New York Knicks,Dorian Finney-Smith,31.0,-1.0,10.6,,Landry Shamet,P.J. Tucker,2026-10-31T15:13:19
+2025,1610612752,greenja02,ok,,,New York Knicks,Javonte Green,31.0,-2.3,1.2,,Landry Shamet,,2026-10-31T15:13:19
+2025,1610612752,huertke01,ok,,,New York Knicks,Kevin Huerter,26.0,-2.0,12.0,,Precious Achiuwa,P.J. Tucker,2026-10-31T14:49:13
+2025,1610612752,johnsca02,ok,,,New York Knicks,Cameron Johnson,28.0,3.1,16.0,,Mikal Bridges,,2026-10-31T14:49:13
+2025,1610612752,mccontj01,ok,,,New York Knicks,T.J. McConnell,32.0,1.2,6.6,,Cameron Payne,Precious Achiuwa,2026-10-31T14:49:13
+2025,1610612752,onealro01,ok,,,New York Knicks,Royce O'Neale,31.0,0.1,6.7,,Cameron Payne,Precious Achiuwa,2026-10-31T14:49:13
+2025,1610612752,portibo01,ok,,,New York Knicks,Bobby Portis,29.0,0.2,8.9,,Landry Shamet,P.J. Tucker,2026-10-31T15:13:19
+2025,1610612752,powelno01,ok,,,New York Knicks,Norman Powell,31.0,1.5,13.7,,Precious Achiuwa,P.J. Tucker,2026-10-31T14:49:13
+2025,1610612752,robindu01,ok,,,New York Knicks,Duncan Robinson,30.0,-1.7,13.8,,Landry Shamet,Mitchell Robinson,2026-10-31T14:49:13
+2025,1610612752,simmobe01,ok,,,New York Knicks,Ben Simmons,28.0,-0.5,27.9,,Mikal Bridges,P.J. Tucker,2026-10-31T15:13:19
+2025,1610612752,simonan01,ok,,,New York Knicks,Anfernee Simons,25.0,-0.1,18.4,,Cameron Payne,Mikal Bridges,2026-10-31T14:49:13
+2025,1610612752,thompkl01,ok,,,New York Knicks,Klay Thompson,34.0,-1.0,11.3,,Landry Shamet,P.J. Tucker,2026-10-31T15:13:19
+2025,1610612753,agbajoc01,ok,,,Orlando Magic,Ochai Agbaji,24.0,-0.7,3.1,yes,Tristan Da Silva,,2026-10-31T15:13:19
+2025,1610612753,beaslma01,ok,,,Orlando Magic,Malik Beasley,28.0,0.8,4.3,,Tristan Da Silva,Caleb Houstan,2026-10-31T15:13:19
+2025,1610612753,curryse01,ok,,,Orlando Magic,Seth Curry,34.0,-1.7,1.5,,Tristan Da Silva,,2026-10-31T15:13:19
+2025,1610612753,dinwisp01,ok,,,Orlando Magic,Spencer Dinwiddie,31.0,-1.6,1.5,,Cory Joseph,,2026-10-31T14:49:13
+2025,1610612753,dosunay01,ok,,,Orlando Magic,Ayo Dosunmu,25.0,-1.6,5.0,,Tristan Da Silva,Cory Joseph,2026-10-31T14:49:13
+2025,1610612753,foxde01,ok,,,Orlando Magic,De'Aaron Fox,27.0,0.4,24.8,,Wendell Carter Jr.,Kentavious Caldwell-Pope,2026-10-31T14:49:13
+2025,1610612753,greenja02,ok,,,Orlando Magic,Javonte Green,31.0,-2.3,1.2,,Cory Joseph,,2026-10-31T14:49:13
+2025,1610612753,jonestr01,ok,,,Orlando Magic,Tre Jones,25.0,1.5,6.5,,Tristan Da Silva,Jett Howard,2026-10-31T15:13:19
+2025,1610612753,mathega01,ok,,,Orlando Magic,Garrison Mathews,28.0,-1.6,1.6,,Tristan Da Silva,,2026-10-31T15:13:19
+2025,1610612753,mccolcj01,ok,,,Orlando Magic,CJ McCollum,33.0,-1.4,23.7,,Anthony Black,Kentavious Caldwell-Pope,2026-10-31T14:49:13
+2025,1610612753,mccontj01,ok,,,Orlando Magic,T.J. McConnell,32.0,1.2,6.6,,Tristan Da Silva,Jett Howard,2026-10-31T14:49:13
+2025,1610612753,nembhan01,ok,,,Orlando Magic,Andrew Nembhard,25.0,-2.3,1.4,,Tristan Da Silva,,2026-10-31T14:49:13
+2025,1610612753,paytoga02,ok,,,Orlando Magic,Gary Payton II,32.0,1.4,6.5,,Tristan Da Silva,Jett Howard,2026-10-31T14:49:13
+2025,1610612753,simmobe01,ok,,,Orlando Magic,Ben Simmons,28.0,-0.5,27.9,,Wendell Carter Jr.,Kentavious Caldwell-Pope,2026-10-31T14:49:13
+2025,1610612753,simonan01,ok,,,Orlando Magic,Anfernee Simons,25.0,-0.1,18.4,,Cory Joseph,Kentavious Caldwell-Pope,2026-10-31T14:49:13
+2025,1610612754,dosunay01,ok,,,Indiana Pacers,Ayo Dosunmu,25.0,-1.6,5.0,,Ben Sheppard,Isaiah Jackson,2026-10-31T14:49:13
+2025,1610612754,grimequ01,ok,,,Indiana Pacers,Quentin Grimes,24.0,0.4,3.1,yes,Andrew Nembhard,Johnny Furphy,2026-10-31T14:49:13
+2025,1610612754,hartjo01,ok,,,Indiana Pacers,Josh Hart,29.0,2.8,12.9,,Myles Turner,,2026-10-31T14:49:13
+2025,1610612754,jeromty01,ok,,,Indiana Pacers,Ty Jerome,27.0,4.3,1.8,,Ben Sheppard,,2026-10-31T14:49:13
+2025,1610612754,leverca01,ok,,,Indiana Pacers,Caris LeVert,30.0,0.9,11.8,,Bennedict Mathurin,Aaron Nesmith,2026-10-31T14:49:13
+2025,1610612754,mannte01,ok,,,Indiana Pacers,Terance Mann,28.0,-1.3,8.1,,Bennedict Mathurin,Johnny Furphy,2026-10-31T14:49:13
+2025,1610612754,martica02,ok,,,Indiana Pacers,Caleb Martin,29.0,-3.2,6.5,,Bennedict Mathurin,,2026-10-31T14:49:13
+2025,1610612754,olynyke01,ok,,,Indiana Pacers,Kelly Olynyk,33.0,-0.7,9.1,,Bennedict Mathurin,Isaiah Jackson,2026-10-31T15:13:18
+2025,1610612754,onealro01,ok,,,Indiana Pacers,Royce O'Neale,31.0,0.1,6.7,,Andrew Nembhard,Bennedict Mathurin,2026-10-31T14:49:13
+2025,1610612754,powelno01,ok,,,Indiana Pacers,Norman Powell,31.0,1.5,13.7,,Bennedict Mathurin,Aaron Nesmith,2026-10-31T14:49:13
+2025,1610612754,trentga02,ok,,,Indiana Pacers,Gary Trent Jr.,26.0,-1.6,1.5,,Bennedict Mathurin,,2026-10-31T14:49:13
+2025,1610612755,bogdabo01,ok,,,Philadelphia 76ers,Bogdan Bogdanović,32.0,-2.0,12.3,,Kelly Oubre Jr.,KJ Martin,2026-10-31T14:49:13
+2025,1610612755,bookede01,ok,,,Philadelphia 76ers,Devin Booker,28.0,0.4,35.0,,Paul George,,2026-10-31T14:49:13
+2025,1610612755,collijo01,ok,,,Philadelphia 76ers,John Collins,27.0,1.0,18.9,,Justin Edwards,Joel Embiid,2026-10-31T14:49:13
+2025,1610612755,grantje01,ok,,,Philadelphia 76ers,Jerami Grant,30.0,-1.6,21.2,,Justin Edwards,Joel Embiid,2026-10-31T14:49:13
+2025,1610612755,huertke01,ok,,,Philadelphia 76ers,Kevin Huerter,26.0,-2.0,12.0,,Kelly Oubre Jr.,KJ Martin,2026-10-31T14:49:13
+2025,1610612755,nurkiju01,ok,,,Philadelphia 76ers,Jusuf Nurkić,30.0,-1.3,12.9,,Caleb Martin,KJ Martin,2026-10-31T15:13:20
+2025,1610612755,onealro01,ok,,,Philadelphia 76ers,Royce O'Neale,31.0,0.1,6.7,,Caleb Martin,,2026-10-31T14:49:13
+2025,1610612755,powelno01,ok,,,Philadelphia 76ers,Norman Powell,31.0,1.5,13.7,,Caleb Martin,KJ Martin,2026-10-31T14:49:13
+2025,1610612755,robindu01,ok,,,Philadelphia 76ers,Duncan Robinson,30.0,-1.7,13.8,,Caleb Martin,KJ Martin,2026-10-31T14:49:13
+2025,1610612755,simmobe01,ok,,,Philadelphia 76ers,Ben Simmons,28.0,-0.5,27.9,,Justin Edwards,Joel Embiid,2026-10-31T15:13:20
+2025,1610612755,thompkl01,flag,bad_contract,,Philadelphia 76ers,Klay Thompson,34.0,-1.0,11.3,,Caleb Martin,Jalen Hood-Schifino,2026-10-31T14:49:13
+2025,1610612755,turnemy01,ok,,,Philadelphia 76ers,Myles Turner,28.0,0.4,14.2,,Caleb Martin,KJ Martin,2026-10-31T15:13:20
+2025,1610612755,vucevni01,ok,,,Philadelphia 76ers,Nikola Vučević,34.0,2.6,14.2,,Caleb Martin,KJ Martin,2026-10-31T14:49:13
+2025,1610612756,aytonde01,ok,,,Phoenix Suns,Deandre Ayton,26.0,-0.7,24.2,,Bradley Beal,,2026-10-31T15:13:20
+2025,1610612756,balllo01,ok,,,Phoenix Suns,Lonzo Ball,27.0,0.2,15.2,,Ryan Dunn,Jusuf Nurkić,2026-10-31T14:49:13
+2025,1610612756,bogdabo01,ok,,,Phoenix Suns,Bogdan Bogdanović,32.0,-2.0,12.3,,Bradley Beal,,2026-10-31T14:49:13
+2025,1610612756,bridgmi01,ok,,,Phoenix Suns,Mikal Bridges,28.0,-0.5,16.6,,Bradley Beal,,2026-10-31T15:13:20
+2025,1610612756,conlemi01,ok,,,Phoenix Suns,Mike Conley,37.0,1.2,7.1,,Mason Plumlee,Vasilije Micić,2026-10-31T14:49:13
+2025,1610612756,derozde01,ok,,,Phoenix Suns,DeMar DeRozan,35.0,-0.1,16.6,,Nick Richards,Jusuf Nurkić,2026-10-31T14:49:13
+2025,1610612756,foxde01,ok,,,Phoenix Suns,De'Aaron Fox,27.0,0.4,24.8,,Grayson Allen,Jusuf Nurkić,2026-10-31T14:49:13
+2025,1610612756,mccolcj01,ok,,,Phoenix Suns,CJ McCollum,33.0,-1.4,23.7,,Bradley Beal,,2026-10-31T14:49:13
+2025,1610612756,mccontj01,ok,,,Phoenix Suns,T.J. McConnell,32.0,1.2,6.6,,Royce O'Neale,,2026-10-31T14:49:13
+2025,1610612756,murrade01,ok,,,Phoenix Suns,Dejounte Murray,28.0,-1.6,21.0,,Bradley Beal,,2026-10-31T15:13:20
+2025,1610612756,russeda01,ok,,,Phoenix Suns,D'Angelo Russell,28.0,-0.4,13.3,,Ryan Dunn,Grayson Allen,2026-10-31T15:13:20
+2025,1610612756,simmobe01,ok,,,Phoenix Suns,Ben Simmons,28.0,-0.5,27.9,,Grayson Allen,Jusuf Nurkić,2026-10-31T14:49:13
+2025,1610612756,simonan01,ok,,,Phoenix Suns,Anfernee Simons,25.0,-0.1,18.4,,Oso Ighodaro,Bradley Beal,2026-10-31T14:49:13
+2025,1610612756,thompkl01,ok,,,Phoenix Suns,Klay Thompson,34.0,-1.0,11.3,,Nick Richards,Vasilije Micić,2026-10-31T15:13:20
+2025,1610612756,youngtr01,flag,bad_contract;team_direction,,Phoenix Suns,Trae Young,26.0,0.5,30.6,,Bradley Beal,,2026-10-31T14:49:13
+2025,1610612757,alexani01,ok,,,Portland Trail Blazers,Nickeil Alexander-Walker,26.0,-0.4,3.1,,Dalano Banton,Toumani Camara,2026-10-31T15:13:20
+2025,1610612757,alvarjo01,ok,,,Portland Trail Blazers,Jose Alvarado,26.0,-1.4,1.4,,Jabari Walker,,2026-10-31T14:49:13
+2025,1610612757,balllo01,ok,,,Portland Trail Blazers,Lonzo Ball,27.0,0.2,15.2,,Scoot Henderson,Matisse Thybulle,2026-10-31T14:49:13
+2025,1610612757,bealbr01,ok,,,Portland Trail Blazers,Bradley Beal,31.0,-1.1,35.7,,Scoot Henderson,Jerami Grant,2026-10-31T15:13:20
+2025,1610612757,beaslma01,ok,,,Portland Trail Blazers,Malik Beasley,28.0,0.8,4.3,,Shaedon Sharpe,,2026-10-31T15:13:20
+2025,1610612757,dinwisp01,ok,,,Portland Trail Blazers,Spencer Dinwiddie,31.0,-1.6,1.5,,Kris Murray,,2026-10-31T14:49:13
+2025,1610612757,dunnkr01,ok,,,Portland Trail Blazers,Kris Dunn,30.0,0.6,3.7,,Kris Murray,Toumani Camara,2026-10-31T15:13:20
+2025,1610612757,foxde01,flag,team_direction,,Portland Trail Blazers,De'Aaron Fox,27.0,0.4,24.8,,Deandre Ayton,,2026-10-31T14:49:13
+2025,1610612757,jonestr01,ok,,,Portland Trail Blazers,Tre Jones,25.0,1.5,6.5,,Dalano Banton,Shaedon Sharpe,2026-10-31T15:13:20
+2025,1610612757,mccolcj01,ok,,,Portland Trail Blazers,CJ McCollum,33.0,-1.4,23.7,,Kris Murray,Jerami Grant,2026-10-31T14:49:13
+2025,1610612757,mccontj01,ok,,,Portland Trail Blazers,T.J. McConnell,32.0,1.2,6.6,,Kris Murray,Shaedon Sharpe,2026-10-31T14:49:13
+2025,1610612757,nembhan01,ok,,,Portland Trail Blazers,Andrew Nembhard,25.0,-2.3,1.4,,Kris Murray,,2026-10-31T14:49:13
+2025,1610612757,onealro01,ok,,,Portland Trail Blazers,Royce O'Neale,31.0,0.1,6.7,,Kris Murray,Shaedon Sharpe,2026-10-31T14:49:13
+2025,1610612757,paytoga02,ok,,,Portland Trail Blazers,Gary Payton II,32.0,1.4,6.5,,Dalano Banton,Shaedon Sharpe,2026-10-31T14:49:13
+2025,1610612757,powelno01,ok,,,Portland Trail Blazers,Norman Powell,31.0,1.5,13.7,,Scoot Henderson,Shaedon Sharpe,2026-10-31T15:13:20
+2025,1610612757,sextoco01,ok,,,Portland Trail Blazers,Collin Sexton,26.0,-0.6,13.1,,Scoot Henderson,Shaedon Sharpe,2026-10-31T14:49:13
+2025,1610612758,allengr01,ok,,,Sacramento Kings,Grayson Allen,29.0,-0.3,11.1,,Kevin Huerter,,2026-10-31T15:13:20
+2025,1610612758,balllo01,ok,,,Sacramento Kings,Lonzo Ball,27.0,0.2,15.2,,Keegan Murray,Jonas Valančiūnas,2026-10-31T14:49:13
+2025,1610612758,clarkbr01,ok,,,Sacramento Kings,Brandon Clarke,28.0,0.8,8.9,,Keegan Murray,Jae Crowder,2026-10-31T14:49:13
+2025,1610612758,georgpa01,flag,team_direction,,Sacramento Kings,Paul George,34.0,-0.4,35.0,,Trey Lyles,Zach LaVine,2026-10-31T14:49:13
+2025,1610612758,huntede01,ok,,,Sacramento Kings,De'Andre Hunter,27.0,0.4,15.4,,Keegan Murray,Jonas Valančiūnas,2026-10-31T14:49:13
+2025,1610612758,johnsca02,ok,,,Sacramento Kings,Cameron Johnson,28.0,3.1,16.0,,DeMar DeRozan,,2026-10-31T14:49:13
+2025,1610612758,jonestr01,ok,,,Sacramento Kings,Tre Jones,25.0,1.5,6.5,,Keegan Murray,,2026-10-31T15:13:20
+2025,1610612758,marshna01,ok,,,Sacramento Kings,Naji Marshall,27.0,-0.8,6.1,,Keegan Murray,,2026-10-31T14:49:13
+2025,1610612758,mccontj01,ok,,,Sacramento Kings,T.J. McConnell,32.0,1.2,6.6,,Keegan Murray,,2026-10-31T14:49:13
+2025,1610612758,onealro01,ok,,,Sacramento Kings,Royce O'Neale,31.0,0.1,6.7,,Keegan Murray,,2026-10-31T14:49:13
+2025,1610612758,paytoga02,ok,,,Sacramento Kings,Gary Payton II,32.0,1.4,6.5,,Keegan Murray,,2026-10-31T14:49:13
+2025,1610612758,powelno01,ok,,,Sacramento Kings,Norman Powell,31.0,1.5,13.7,,Kevin Huerter,,2026-10-31T15:13:20
+2025,1610612758,russeda01,ok,,,Sacramento Kings,D'Angelo Russell,28.0,-0.4,13.3,,Keegan Murray,Jonas Valančiūnas,2026-10-31T15:13:20
+2025,1610612758,sextoco01,ok,,,Sacramento Kings,Collin Sexton,26.0,-0.6,13.1,,Kevin Huerter,,2026-10-31T14:49:13
+2025,1610612759,alvarjo01,ok,,,San Antonio Spurs,Jose Alvarado,26.0,-1.4,1.4,,Blake Wesley,,2026-10-31T14:49:13
+2025,1610612759,bantoda01,ok,,,San Antonio Spurs,Dalano Banton,25.0,-0.8,1.6,,Blake Wesley,,2026-10-31T15:13:20
+2025,1610612759,bogdabo01,ok,,,San Antonio Spurs,Bogdan Bogdanović,32.0,-2.0,12.3,,Harrison Barnes,,2026-10-31T14:49:13
+2025,1610612759,dinwisp01,ok,,,San Antonio Spurs,Spencer Dinwiddie,31.0,-1.6,1.5,,Blake Wesley,,2026-10-31T14:49:13
+2025,1610612759,dosunay01,ok,,,San Antonio Spurs,Ayo Dosunmu,25.0,-1.6,5.0,,Blake Wesley,Malaki Branham,2026-10-31T14:49:13
+2025,1610612759,greenaj01,ok,,,San Antonio Spurs,A.J. Green,25.0,-2.2,1.5,,Blake Wesley,,2026-10-31T15:13:20
+2025,1610612759,greenja02,ok,,,San Antonio Spurs,Javonte Green,31.0,-2.3,1.2,,Blake Wesley,,2026-10-31T14:49:13
+2025,1610612759,jonesty01,ok,,,San Antonio Spurs,Tyus Jones,28.0,0.1,1.5,,Blake Wesley,,2026-10-31T14:49:13
+2025,1610612759,mccolcj01,ok,,,San Antonio Spurs,CJ McCollum,33.0,-1.4,23.7,,Julian Champagnie,Devin Vassell,2026-10-31T14:49:13
+2025,1610612759,mccontj01,ok,,,San Antonio Spurs,T.J. McConnell,32.0,1.2,6.6,,Julian Champagnie,Jeremy Sochan,2026-10-31T14:49:13
+2025,1610612759,miltosh01,ok,,,San Antonio Spurs,Shake Milton,28.0,-2.2,2.0,,Stephon Castle,,2026-10-31T15:13:20
+2025,1610612759,nembhan01,ok,,,San Antonio Spurs,Andrew Nembhard,25.0,-2.3,1.4,,Blake Wesley,,2026-10-31T14:49:13
+2025,1610612759,onealro01,ok,,,San Antonio Spurs,Royce O'Neale,31.0,0.1,6.7,,Stephon Castle,,2026-10-31T14:49:13
+2025,1610612759,payneca01,ok,,,San Antonio Spurs,Cameron Payne,30.0,-0.2,1.5,,Blake Wesley,,2026-10-31T15:13:20
+2025,1610612759,trentga02,ok,,,San Antonio Spurs,Gary Trent Jr.,26.0,-1.6,1.5,,Blake Wesley,,2026-10-31T15:13:20
+2025,1610612759,youngtr01,ok,,,San Antonio Spurs,Trae Young,26.0,0.5,30.6,,Chris Paul,Devin Vassell,2026-10-31T15:13:20
+2025,1610612760,anderky01,ok,,,Oklahoma City Thunder,Kyle Anderson,31.0,1.5,6.2,,Kenrich Williams,Branden Carlson,2026-10-31T14:49:13
+2025,1610612760,antetgi01,ok,,,Oklahoma City Thunder,Giannis Antetokounmpo,30.0,9.5,34.7,,Chet Holmgren,Isaiah Hartenstein,2026-10-31T14:49:13
+2025,1610612760,bridgmi02,ok,,,Oklahoma City Thunder,Miles Bridges,26.0,1.8,19.3,,Luguentz Dort,Kenrich Williams,2026-10-31T14:49:13
+2025,1610612760,davisan02,ok,,,Oklahoma City Thunder,Anthony Davis,31.0,5.4,30.7,,Isaiah Joe,Isaiah Hartenstein,2026-10-31T14:49:13
+2025,1610612760,harrito02,ok,,,Oklahoma City Thunder,Tobias Harris,32.0,0.1,18.0,,Luguentz Dort,Ousmane Dieng,2026-10-31T15:13:19
+2025,1610612760,hausesa01,ok,,,Oklahoma City Thunder,Sam Hauser,27.0,0.8,1.5,,Kenrich Williams,,2026-10-31T14:49:13
+2025,1610612760,horfoal01,ok,,,Oklahoma City Thunder,Al Horford,38.0,1.2,6.8,,Kenrich Williams,Dillon Jones,2026-10-31T14:49:13
+2025,1610612760,johnsca02,ok,,,Oklahoma City Thunder,Cameron Johnson,28.0,3.1,16.0,,Kenrich Williams,Luguentz Dort,2026-10-31T14:49:13
+2025,1610612760,valanjo01,ok,,,Oklahoma City Thunder,Jonas Valančiūnas,32.0,0.6,7.0,,Kenrich Williams,Dillon Jones,2026-10-31T14:49:13
+2025,1610612760,vucevni01,ok,,,Oklahoma City Thunder,Nikola Vučević,34.0,2.6,14.2,,Kenrich Williams,Luguentz Dort,2026-10-31T14:49:13
+2025,1610612760,willizi01,ok,,,Oklahoma City Thunder,Zion Williamson,24.0,7.0,26.1,,Kenrich Williams,Isaiah Hartenstein,2026-10-31T14:49:13
+2025,1610612761,alexani01,ok,,,Toronto Raptors,Nickeil Alexander-Walker,26.0,-0.4,3.1,,Ochai Agbaji,,2026-10-31T15:13:21
+2025,1610612761,alvarjo01,ok,,,Toronto Raptors,Jose Alvarado,26.0,-1.4,1.4,,Jamal Shead,,2026-10-31T14:49:13
+2025,1610612761,beaslma01,ok,,,Toronto Raptors,Malik Beasley,28.0,0.8,4.3,,Davion Mitchell,,2026-10-31T14:49:13
+2025,1610612761,dunnkr01,ok,,,Toronto Raptors,Kris Dunn,30.0,0.6,3.7,,Gradey Dick,,2026-10-31T15:13:21
+2025,1610612761,foxde01,ok,,,Toronto Raptors,De'Aaron Fox,27.0,0.4,24.8,,Chris Boucher,Bruce Brown,2026-10-31T14:49:13
+2025,1610612761,jonestr01,ok,,,Toronto Raptors,Tre Jones,25.0,1.5,6.5,,Jamal Shead,Davion Mitchell,2026-10-31T15:13:21
+2025,1610612761,mccolcj01,ok,,,Toronto Raptors,CJ McCollum,33.0,-1.4,23.7,,Davion Mitchell,Bruce Brown,2026-10-31T14:49:13
+2025,1610612761,mccontj01,ok,,,Toronto Raptors,T.J. McConnell,32.0,1.2,6.6,,Jonathan Mogbo,Davion Mitchell,2026-10-31T14:49:13
+2025,1610612761,nembhan01,ok,,,Toronto Raptors,Andrew Nembhard,25.0,-2.3,1.4,,Jamal Shead,,2026-10-31T14:49:13
+2025,1610612761,paytoga02,ok,,,Toronto Raptors,Gary Payton II,32.0,1.4,6.5,,Jamal Shead,Davion Mitchell,2026-10-31T14:49:13
+2025,1610612761,powelno01,ok,,,Toronto Raptors,Norman Powell,31.0,1.5,13.7,,Davion Mitchell,Kelly Olynyk,2026-10-31T15:13:21
+2025,1610612761,schrode01,ok,,,Toronto Raptors,Dennis Schröder,31.0,-2.2,9.3,,Jamal Shead,Kelly Olynyk,2026-10-31T14:49:13
+2025,1610612761,sextoco01,ok,,,Toronto Raptors,Collin Sexton,26.0,-0.6,13.1,,Gradey Dick,Kelly Olynyk,2026-10-31T14:49:13
+2025,1610612761,westbru01,ok,,,Toronto Raptors,Russell Westbrook,36.0,-1.1,2.3,,Ja'Kobe Walter,,2026-10-31T14:49:13
+2025,1610612762,alexani01,ok,,,Utah Jazz,Nickeil Alexander-Walker,26.0,-0.4,3.1,,Keyonte George,,2026-10-31T14:49:13
+2025,1610612762,allengr01,ok,,,Utah Jazz,Grayson Allen,29.0,-0.3,11.1,,Isaiah Collier,Jordan Clarkson,2026-10-31T14:49:13
+2025,1610612762,alvarjo01,ok,,,Utah Jazz,Jose Alvarado,26.0,-1.4,1.4,,Brice Sensabaugh,,2026-10-31T14:49:13
+2025,1610612762,beaslma01,ok,,,Utah Jazz,Malik Beasley,28.0,0.8,4.3,,Keyonte George,Patty Mills,2026-10-31T14:49:13
+2025,1610612762,bogdabo01,ok,,,Utah Jazz,Bogdan Bogdanović,32.0,-2.0,12.3,,Johnny Juzang,Jordan Clarkson,2026-10-31T14:49:13
+2025,1610612762,dunnkr01,ok,,,Utah Jazz,Kris Dunn,30.0,0.6,3.7,,Johnny Juzang,Patty Mills,2026-10-31T15:13:21
+2025,1610612762,jonestr01,ok,,,Utah Jazz,Tre Jones,25.0,1.5,6.5,,Brice Sensabaugh,Drew Eubanks,2026-10-31T15:13:21
+2025,1610612762,mccontj01,ok,,,Utah Jazz,T.J. McConnell,32.0,1.2,6.6,,Johnny Juzang,Drew Eubanks,2026-10-31T14:49:13
+2025,1610612762,nembhan01,ok,,,Utah Jazz,Andrew Nembhard,25.0,-2.3,1.4,,Isaiah Collier,,2026-10-31T14:49:13
+2025,1610612762,onealro01,ok,,,Utah Jazz,Royce O'Neale,31.0,0.1,6.7,,Johnny Juzang,Drew Eubanks,2026-10-31T14:49:13
+2025,1610612762,paulch01,ok,,,Utah Jazz,Chris Paul,39.0,0.8,7.4,,Keyonte George,Drew Eubanks,2026-10-31T15:13:21
+2025,1610612762,paytoga02,ok,,,Utah Jazz,Gary Payton II,32.0,1.4,6.5,,Kyle Filipowski,Drew Eubanks,2026-10-31T14:49:13
+2025,1610612762,powelno01,ok,,,Utah Jazz,Norman Powell,31.0,1.5,13.7,,Keyonte George,Jordan Clarkson,2026-10-31T15:13:21
+2025,1610612762,russeda01,ok,,,Utah Jazz,D'Angelo Russell,28.0,-0.4,13.3,,Keyonte George,Jordan Clarkson,2026-10-31T15:13:21
+2025,1610612762,simonan01,ok,,,Utah Jazz,Anfernee Simons,25.0,-0.1,18.4,,Jordan Clarkson,KJ Martin,2026-10-31T14:49:13
+2025,1610612763,alvarjo01,ok,,,Memphis Grizzlies,Jose Alvarado,26.0,-1.4,1.4,,Jaylen Wells,Lamar Stevens,2026-10-31T14:49:13
+2025,1610612763,anderky01,ok,,,Memphis Grizzlies,Kyle Anderson,31.0,1.5,6.2,,Jaylen Wells,John Konchar,2026-10-31T14:49:13
+2025,1610612763,antetgi01,flag,team_direction,,Memphis Grizzlies,Giannis Antetokounmpo,30.0,9.5,34.7,,Santi Aldama,Ja Morant,2026-10-31T14:49:13
+2025,1610612763,beaslma01,ok,,,Memphis Grizzlies,Malik Beasley,28.0,0.8,4.3,,Jaylen Wells,John Konchar,2026-10-31T14:49:13
+2025,1610612763,bouchch01,ok,,,Memphis Grizzlies,Chris Boucher,32.0,2.3,7.7,,Jaylen Wells,Marvin Bagley III,2026-10-31T15:13:18
+2025,1610612763,collijo01,ok,,,Memphis Grizzlies,John Collins,27.0,1.0,18.9,,Jaylen Wells,Marcus Smart,2026-10-31T14:49:13
+2025,1610612763,foxde01,flag,team_direction,,Memphis Grizzlies,De'Aaron Fox,27.0,0.4,24.8,,Brandon Clarke,Marcus Smart,2026-10-31T14:49:13
+2025,1610612763,lylestr01,ok,,,Memphis Grizzlies,Trey Lyles,29.0,-0.7,5.7,,Jaylen Wells,John Konchar,2026-10-31T15:13:18
+2025,1610612763,marshna01,ok,,,Memphis Grizzlies,Naji Marshall,27.0,-0.8,6.1,,Jaylen Wells,John Konchar,2026-10-31T14:49:13
+2025,1610612763,mccontj01,ok,,,Memphis Grizzlies,T.J. McConnell,32.0,1.2,6.6,,Luke Kennard,,2026-10-31T14:49:13
+2025,1610612763,nurkiju01,ok,,,Memphis Grizzlies,Jusuf Nurkić,30.0,-1.3,12.9,,Jaylen Wells,Marcus Smart,2026-10-31T15:13:18
+2025,1610612763,olynyke01,ok,,,Memphis Grizzlies,Kelly Olynyk,33.0,-0.7,9.1,,Jaylen Wells,Marvin Bagley III,2026-10-31T15:13:18
+2025,1610612763,onealro01,ok,,,Memphis Grizzlies,Royce O'Neale,31.0,0.1,6.7,,Jaylen Wells,John Konchar,2026-10-31T14:49:13
+2025,1610612763,portibo01,ok,,,Memphis Grizzlies,Bobby Portis,29.0,0.2,8.9,,Jaylen Wells,Marvin Bagley III,2026-10-31T15:13:18
+2025,1610612763,powelno01,ok,,,Memphis Grizzlies,Norman Powell,31.0,1.5,13.7,,Jaylen Wells,Marcus Smart,2026-10-31T14:49:13
+2025,1610612764,alvarjo01,ok,,,Washington Wizards,Jose Alvarado,26.0,-1.4,1.4,,Kyshawn George,,2026-10-31T14:49:13
+2025,1610612764,bantoda01,ok,,,Washington Wizards,Dalano Banton,25.0,-0.8,1.6,,Kyshawn George,,2026-10-31T14:49:13
+2025,1610612764,jonesty01,ok,,,Washington Wizards,Tyus Jones,28.0,0.1,1.5,,Kyshawn George,,2026-10-31T14:49:13
+2025,1610612764,mccolcj01,ok,,,Washington Wizards,CJ McCollum,33.0,-1.4,23.7,,Alex Sarr,Marcus Smart,2026-10-31T14:49:13
+2025,1610612764,mitchda01,ok,,,Washington Wizards,Davion Mitchell,26.0,-2.6,4.6,yes,Bilal Coulibaly,,2026-10-31T14:49:13
+2025,1610612764,nembhan01,ok,,,Washington Wizards,Andrew Nembhard,25.0,-2.3,1.4,,Kyshawn George,,2026-10-31T14:49:13
+2025,1610612764,onealro01,ok,,,Washington Wizards,Royce O'Neale,31.0,0.1,6.7,,Corey Kispert,Colby Jones,2026-10-31T14:49:13
+2025,1610612764,paulch01,ok,,,Washington Wizards,Chris Paul,39.0,0.8,7.4,,Alex Sarr,,2026-10-31T15:13:21
+2025,1610612764,payneca01,ok,,,Washington Wizards,Cameron Payne,30.0,-0.2,1.5,,Kyshawn George,,2026-10-31T15:13:21
+2025,1610612764,porteke02,ok,,,Washington Wizards,Kevin Porter Jr.,24.0,-0.6,1.7,,Kyshawn George,,2026-10-31T15:13:21
+2025,1610612764,simmobe01,ok,,,Washington Wizards,Ben Simmons,28.0,-0.5,27.9,,Corey Kispert,Jordan Poole,2026-10-31T14:49:13
+2025,1610612764,simonan01,ok,,,Washington Wizards,Anfernee Simons,25.0,-0.1,18.4,,Corey Kispert,Marcus Smart,2026-10-31T14:49:13
+2025,1610612764,westbru01,flag,team_direction,,Washington Wizards,Russell Westbrook,36.0,-1.1,2.3,,Kyshawn George,,2026-10-31T14:49:13
+2025,1610612765,bogdabo01,ok,,,Detroit Pistons,Bogdan Bogdanović,32.0,-2.0,12.3,,Tim Hardaway Jr.,,2026-10-31T14:49:13
+2025,1610612765,coffeam01,ok,,,Detroit Pistons,Amir Coffey,27.0,-1.7,2.8,,Dennis Schröder,,2026-10-31T14:49:13
+2025,1610612765,grantje01,flag,bad_contract,,Detroit Pistons,Jerami Grant,30.0,-1.6,21.2,,Dennis Schröder,Tim Hardaway Jr.,2026-10-31T14:49:13
+2025,1610612765,greenja02,ok,,,Detroit Pistons,Javonte Green,31.0,-2.3,1.2,,Simone Fontecchio,,2026-10-31T15:13:17
+2025,1610612765,grimequ01,ok,,,Detroit Pistons,Quentin Grimes,24.0,0.4,3.1,yes,Marcus Sasser,Daniss Jenkins,2026-10-31T15:13:17
+2025,1610612765,mannte01,ok,,,Detroit Pistons,Terance Mann,28.0,-1.3,8.1,,Dennis Schröder,,2026-10-31T14:49:13
+2025,1610612765,middlkh01,ok,,,Detroit Pistons,Khris Middleton,33.0,0.7,22.1,,Tim Hardaway Jr.,Dennis Schröder,2026-10-31T14:49:13
+2025,1610612765,miltosh01,ok,,,Detroit Pistons,Shake Milton,28.0,-2.2,2.0,,Dennis Schröder,,2026-10-31T15:13:17
+2025,1610612765,nembhan01,ok,,,Detroit Pistons,Andrew Nembhard,25.0,-2.3,1.4,,Simone Fontecchio,,2026-10-31T14:49:13
+2025,1610612765,olynyke01,ok,,,Detroit Pistons,Kelly Olynyk,33.0,-0.7,9.1,,Dennis Schröder,,2026-10-31T15:13:17
+2025,1610612765,onealro01,ok,,,Detroit Pistons,Royce O'Neale,31.0,0.1,6.7,,Marcus Sasser,Simone Fontecchio,2026-10-31T14:49:13
+2025,1610612765,paytoga02,ok,,,Detroit Pistons,Gary Payton II,32.0,1.4,6.5,,Ron Holland,,2026-10-31T14:49:13
+2025,1610612765,princta02,ok,,,Detroit Pistons,Taurean Prince,30.0,-1.7,1.5,,Tim Hardaway Jr.,,2026-10-31T14:49:13
+2025,1610612765,robindu01,ok,,,Detroit Pistons,Duncan Robinson,30.0,-1.7,13.8,,Simone Fontecchio,Dennis Schröder,2026-10-31T14:49:13
+2025,1610612765,trentga02,ok,,,Detroit Pistons,Gary Trent Jr.,26.0,-1.6,1.5,,Simone Fontecchio,,2026-10-31T15:13:17
+2025,1610612766,agbajoc01,ok,,,Charlotte Hornets,Ochai Agbaji,24.0,-0.7,3.1,yes,Seth Curry,Taj Gibson,2026-10-31T15:13:16
+2025,1610612766,alexani01,ok,,,Charlotte Hornets,Nickeil Alexander-Walker,26.0,-0.4,3.1,,Seth Curry,Taj Gibson,2026-10-31T15:13:16
+2025,1610612766,beaslma01,ok,,,Charlotte Hornets,Malik Beasley,28.0,0.8,4.3,,DaQuan Jeffries,Wendell Moore Jr.,2026-10-31T14:49:13
+2025,1610612766,bogdabo01,ok,,,Charlotte Hornets,Bogdan Bogdanović,32.0,-2.0,12.3,,Cody Martin,Tidjane Salaün,2026-10-31T14:49:13
+2025,1610612766,brookdi01,ok,,,Charlotte Hornets,Dillon Brooks,29.0,-1.4,15.8,,Nick Smith Jr.,Jusuf Nurkić,2026-10-31T15:13:16
+2025,1610612766,dosunay01,ok,,,Charlotte Hornets,Ayo Dosunmu,25.0,-1.6,5.0,,Seth Curry,Tre Mann,2026-10-31T14:49:13
+2025,1610612766,greenja02,ok,,,Charlotte Hornets,Javonte Green,31.0,-2.3,1.2,,Seth Curry,,2026-10-31T14:49:13
+2025,1610612766,grimequ01,ok,,,Charlotte Hornets,Quentin Grimes,24.0,0.4,3.1,yes,Seth Curry,Taj Gibson,2026-10-31T15:13:16
+2025,1610612766,mannte01,ok,,,Charlotte Hornets,Terance Mann,28.0,-1.3,8.1,,Cody Martin,Seth Curry,2026-10-31T14:49:13
+2025,1610612766,martica02,ok,,,Charlotte Hornets,Caleb Martin,29.0,-3.2,6.5,,Vasilije Micić,,2026-10-31T15:13:16
+2025,1610612766,nembhan01,ok,,,Charlotte Hornets,Andrew Nembhard,25.0,-2.3,1.4,,Seth Curry,,2026-10-31T14:49:13
+2025,1610612766,onealro01,ok,,,Charlotte Hornets,Royce O'Neale,31.0,0.1,6.7,,Seth Curry,Tidjane Salaün,2026-10-31T14:49:13
+2025,1610612766,paytoga02,ok,,,Charlotte Hornets,Gary Payton II,32.0,1.4,6.5,,Seth Curry,Tidjane Salaün,2026-10-31T14:49:13
+2025,1610612766,robindu01,ok,,,Charlotte Hornets,Duncan Robinson,30.0,-1.7,13.8,,Seth Curry,Jusuf Nurkić,2026-10-31T14:49:13
+2025,1610612766,simonan01,ok,,,Charlotte Hornets,Anfernee Simons,25.0,-0.1,18.4,,Tidjane Salaün,Jusuf Nurkić,2026-10-31T14:49:13
+2025,1610612766,willizi02,ok,,,Charlotte Hornets,Ziaire Williams,23.0,-2.3,4.4,yes,Seth Curry,Tre Mann,2026-10-31T15:13:16

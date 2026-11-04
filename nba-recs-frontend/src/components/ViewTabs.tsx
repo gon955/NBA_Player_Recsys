@@ -2,7 +2,6 @@
 
 export const VIEWS = [
   { id: "recommend", label: "Recommendations" },
-  { id: "clusters", label: "Cluster Overview" },
   { id: "ask", label: "Ask Question" },
 ] as const;
 

@@ -43,7 +43,8 @@ next to player impacts (sd ~2.2). Treat them as a tie-breaker, not a ranking.
 
 Usage:
     python fit_model.py --evaluate     # compare models, pick lam
-    python fit_model.py                # fit on all seasons, write coefficients
+    python fit_model.py                # write pooled coefficients, and the
+                                       # per-season main effects impact_recs reads
 """
 
 import argparse
@@ -277,6 +278,27 @@ def fit_all(panel, impact, labels, lam):
     return coef.reset_index()
 
 
+def fit_main_by_season(panel, impact, labels, lam):
+    """Archetype main effects as of each season: fit on seasons <= t only.
+
+    What impact_recs.py uses. fit_all pools every season, so a 2005
+    recommendation would carry a correction learned partly from 2020 lineups.
+    Pairs are left out: they add ~.0002 R^2 and nothing that survives the
+    shuffled-label control (see the module docstring).
+    """
+    vocab = Vocab(labels["cluster_label"], pairs=False)
+    acc_o, acc_d = _Accumulator(vocab.n_cols), _Accumulator(vocab.n_cols)
+    out = []
+    for season in sorted(panel["season"].unique()):
+        X, r_o, w_o, r_d, w_d = season_block(panel, impact, labels, vocab, season)
+        acc_o.add(X, r_o, w_o)
+        acc_d.add(X, r_d, w_d)
+        o, d = acc_o.solve(lam), acc_d.solve(lam)
+        out.append(pd.DataFrame({"season": season, "archetype": vocab.names,
+                                 "o_effect": o, "d_effect": d, "net_effect": o + d}))
+    return pd.concat(out, ignore_index=True)
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -288,7 +310,10 @@ def main():
                     help="box-score prior for the impact refits in --evaluate")
     ap.add_argument("--lam", type=float, default=DEFAULT_LAM)
     ap.add_argument("--evaluate", action="store_true")
-    ap.add_argument("--out", default=os.path.join("data", "archetype_fit.csv"))
+    ap.add_argument("--out", default=os.path.join("data", "archetype_fit.csv"),
+                    help="pooled main + pair coefficients, for analysis")
+    ap.add_argument("--out-main", default=os.path.join("data", "archetype_main.csv"),
+                    help="main effects as of each season, what impact_recs.py reads")
     args = ap.parse_args()
 
     panel, impact, labels = load_inputs(args.panel, args.impact, args.clusters)
@@ -299,6 +324,9 @@ def main():
     coef = fit_all(panel, impact, labels, args.lam)
     coef.round(4).to_csv(args.out, index=False)
     print(f"Wrote {len(coef)} coefficients to '{args.out}' (lam={args.lam:g})")
+    by_season = fit_main_by_season(panel, impact, labels, args.lam)
+    by_season.round(4).to_csv(args.out_main, index=False)
+    print(f"Wrote {len(by_season)} season-archetype main effects to '{args.out_main}'")
     return 0
 
 

@@ -108,20 +108,6 @@ def test_build_panel_rejects_a_player_listed_twice():
         lf.build_panel(_lineups(), cw)
 
 
-def test_attach_covariates_marks_missing_players_unknown():
-    panel = lf.build_panel(_lineups(), _crosswalk())
-    players = pd.DataFrame({
-        "player_id": ["a01", "b01"], "season": [2023, 2023],
-        "cluster_label": ["MVP", "Floor Spacers"], "pos": ["C", "PG"], "bpm": [13.0, 2.0],
-    })
-    out = lf.attach_covariates(panel, players)
-
-    row = out.iloc[0]
-    assert row["p1_cluster"] == "MVP" and row["p1_pos"] == "C"
-    assert row["p3_cluster"] == "unknown" and math.isnan(row["p3_bpm"])
-    assert row["n_known"] == 2
-
-
 def test_explode_gives_five_rows_per_lineup():
     panel = lf.build_panel(_lineups(), _crosswalk())
     long = lf.explode(panel)

@@ -64,3 +64,30 @@ def test_moves_follow_hornets_relocation_and_skip_expansion():
     # x joining the 2005 expansion Bobcats has no season-t team to rank against.
     x = arr.loc["x"].set_index("TeamId").loc[chh]
     assert x["expansion"] and not x["rankable"]
+
+
+def test_realised_gain_reads_next_season_impact():
+    arr = pd.DataFrame({"season": 2020, "TeamId": 1, "player_id": ["a", "b", "c"],
+                        "share_next": [0.5, 0.2, 0.4], "rankable": [True, True, False]})
+    impact = pd.DataFrame({"player_id": ["a", "b", "a"], "season": [2021, 2021, 2020],
+                           "net_impact": [2.0, -1.0, 9.0]})
+    hits = ev.realised_gain(arr, impact).set_index("player_id")
+
+    # Only rankable arrivals; the 2020 impact (9.0) is season t, not what he delivered.
+    assert list(hits.index) == ["a", "b"]
+    assert hits.loc["a", "realised"] == pytest.approx(1.0)
+    assert hits.loc["b", "realised"] == pytest.approx(-0.2)
+
+
+def test_quality_rewards_ranking_the_better_arrivals_higher():
+    rng = np.random.default_rng(0)
+    n = 40
+    hits = pd.DataFrame({"season": 2020, "TeamId": np.arange(n) % 8,
+                         "realised": np.linspace(-1, 1, n)})
+    pct = np.linspace(0.9, 0.1, n)      # better arrivals ranked nearer the top
+    pcts = {"good": pd.DataFrame({"pct": pct, "rank": pct * 400}),
+            "bad": pd.DataFrame({"pct": pct[::-1], "rank": pct[::-1] * 400})}
+    rho = ev.quality(hits, pcts, rng, ref="good", quiet=True)
+
+    assert rho["good"] == pytest.approx(1.0)
+    assert rho["bad"] == pytest.approx(-1.0)

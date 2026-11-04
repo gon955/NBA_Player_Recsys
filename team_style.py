@@ -269,7 +269,9 @@ def main():
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--panel", default=os.path.join("data", "lineup_panel.csv"))
     ap.add_argument("--lineups", default=os.path.join("data", "pbpstats_lineups.csv"))
-    ap.add_argument("--clusters", default="master_clustered.csv")
+    ap.add_argument("--clusters", default=os.path.join("data", "player_seasons.csv"),
+                    help="archetype labels for the mix columns; player_seasons.csv has none "
+                         "(mix = 'unknown'), master_clustered.csv restores them")
     ap.add_argument("--adv", default=os.path.join("data", "Advanced.csv"))
     ap.add_argument("--report", action="store_true")
     ap.add_argument("--evaluate-fit", action="store_true",

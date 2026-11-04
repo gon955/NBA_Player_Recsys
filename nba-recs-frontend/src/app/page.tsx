@@ -2,19 +2,15 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import AskPanel from "@/components/AskPanel";
-import ClusterOverview from "@/components/ClusterOverview";
 import RecommendForm from "@/components/RecommendForm";
 import RecommendResults from "@/components/RecommendResults";
 import ViewTabs, { type View } from "@/components/ViewTabs";
 import {
   askQuestion,
-  getClusterSummaries,
   getRecommendations,
   getTeams,
-  type ClusterSummaryRecord,
   type Recommendation,
 } from "@/lib/api";
-import { getEraFromYear } from "@/lib/era";
 
 /** An aborted fetch is a superseded request, not a failure worth showing. */
 function isAbort(err: unknown) {
@@ -37,13 +33,6 @@ export default function HomePage() {
   const [error, setError] = useState<string | null>(null);
   const recsAbort = useRef<AbortController | null>(null);
 
-  const [clusterData, setClusterData] = useState<{
-    player?: ClusterSummaryRecord[];
-    team?: ClusterSummaryRecord[];
-  }>({});
-  const [clusterLoading, setClusterLoading] = useState(false);
-  const [clusterError, setClusterError] = useState<string | null>(null);
-
   const [askQuery, setAskQuery] = useState("");
   const [askEra, setAskEra] = useState("");
   const [askAnswer, setAskAnswer] = useState<string | null>(null);
@@ -60,23 +49,6 @@ export default function HomePage() {
       });
     return () => ctrl.abort();
   }, []);
-
-  // Cluster summaries are static, so fetch them once on first visit to the tab.
-  useEffect(() => {
-    if (view !== "clusters" || clusterData.player) return;
-    const ctrl = new AbortController();
-    setClusterLoading(true);
-    setClusterError(null);
-    getClusterSummaries(ctrl.signal)
-      .then(setClusterData)
-      .catch((err) => {
-        if (!isAbort(err)) setClusterError(message(err, "Failed to load clusters"));
-      })
-      .finally(() => {
-        if (!ctrl.signal.aborted) setClusterLoading(false);
-      });
-    return () => ctrl.abort();
-  }, [view, clusterData.player]);
 
   // Abort anything still in flight when the page goes away.
   useEffect(
@@ -108,7 +80,7 @@ export default function HomePage() {
 
     try {
       const data = await getRecommendations(
-        { era: getEraFromYear(season), user_id: `${team}_${season}`, k },
+        { user_id: `${team}_${season}`, k },
         ctrl.signal,
       );
       setResults(data.recommendations);
@@ -146,7 +118,9 @@ export default function HomePage() {
         <h1 className="text-3xl font-bold tracking-tight text-slate-50">
           NBA Player Recommender
         </h1>
-        <p className="text-slate-400 mt-2">LightFM recommendations served by FastAPI.</p>
+        <p className="text-slate-400 mt-2">
+          Players who would make this team better next season, among moves it could make.
+        </p>
 
         <ViewTabs view={view} onChange={setView} />
 
@@ -167,10 +141,6 @@ export default function HomePage() {
             />
             <RecommendResults loading={loading} error={error} results={results} />
           </>
-        )}
-
-        {view === "clusters" && (
-          <ClusterOverview loading={clusterLoading} error={clusterError} data={clusterData} />
         )}
 
         {view === "ask" && (

@@ -1,3 +1,4 @@
+import json
 import os
 
 import boto3
@@ -7,15 +8,14 @@ from vector_index import get_index
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-EMBED_MODEL = "BAAI/bge-small-en-v1.5"
-# Where the Dockerfile bakes the ONNX weights. fastembed otherwise caches into
-# tempfile.gettempdir() — i.e. /tmp, which does NOT survive a Lambda cold start,
-# so every cold start would re-pull ~65 MB from HuggingFace (and fail outright
-# in a VPC with no NAT gateway).
-FASTEMBED_CACHE = os.environ.get("FASTEMBED_CACHE_DIR", "/opt/fastembed")
+# Questions are embedded by the same Bedrock model that embedded the index
+# (build_ask_index.py records which in index_info.json), so the image carries no
+# embedding model: no onnxruntime, no weights, no cold-start session to build.
+INDEX_INFO = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "index",
+                          "index_info.json")
 
 _bedrock = None
-_embedder = None
+_index_info = None
 
 
 def get_llm():
@@ -25,27 +25,26 @@ def get_llm():
     return _bedrock
 
 
-def get_embedder():
-    """Lazily construct the embedder. Kept out of import for the same reason as
-    similarity.get_model(): a cold start that only serves /health or
-    /recommendations should not pay to build an ONNX session it never uses."""
-    global _embedder
-    if _embedder is None:
-        from fastembed import TextEmbedding
+def index_info():
+    """Which model and dimensions embedded the index (index_info.json)."""
+    global _index_info
+    if _index_info is None:
+        with open(INDEX_INFO) as f:
+            _index_info = json.load(f)
+    return _index_info
 
-        if os.path.isdir(FASTEMBED_CACHE):
-            _embedder = TextEmbedding(
-                EMBED_MODEL, device="cpu",
-                cache_dir=FASTEMBED_CACHE, local_files_only=True,
-            )
-        else:
-            # Dev fallback: no baked cache, so allow the normal download path.
-            _embedder = TextEmbedding(EMBED_MODEL, device="cpu")
-    return _embedder
 
-# Phrases that signal a "who plays like X" style question. Vector retrieval alone
-# answers these poorly (its embeddings encode roster co-occurrence, not style —
-# see similarity.py), so on these we inject stat-profile nearest neighbors.
+def embed_query(query: str):
+    """One Bedrock call: the question as a vector comparable with the index."""
+    info = index_info()
+    body = json.dumps({"inputText": query, "dimensions": info["dimensions"],
+                       "normalize": info.get("normalize", True)})
+    resp = get_llm().invoke_model(modelId=info["model"], body=body)
+    return json.loads(resp["body"].read())["embedding"]
+
+# Phrases that signal a "who plays like X" style question. Text retrieval alone
+# answers these poorly (chunks match on topic and wording, not on statistical
+# profile -- see similarity.py), so on these we inject stat-profile nearest neighbors.
 _SIMILARITY_CUES = (
     "plays like", "play like", "played like", "similar to", "similar player",
     "similar players", "comparable to", "comparison", "comps", "compare to",
@@ -67,7 +66,7 @@ def format_comps(name: str, comps: list) -> str:
     return header + "\n" + "\n".join(lines)
 
 def retrieve(query: str, era: str = None, n_results:int = 5):
-    query_embedding = list(get_embedder().embed([query]))[0]
+    query_embedding = embed_query(query)
 
     player_docs = get_index("nba_players").query(query_embedding, n_results, era)
     team_docs = get_index("nba_teams").query(query_embedding, n_results, era)

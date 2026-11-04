@@ -1,5 +1,4 @@
-/** The three eras the LightFM models are trained per. Must match the keys the
- *  backend loads from models_all.joblib. */
+/** The three eras the Ask tab's filter (and the index behind it) is split by. */
 export const ERAS = ["1999-2007", "2008-2015", "2016-present"] as const;
 
 export type Era = (typeof ERAS)[number];

@@ -33,6 +33,21 @@ recommender will put them to. Results, 1999-2025:
   box prior,  lam 16000      O 0.0204  D 0.0081   default; beats BPM in 24/26
                                                   seasons on O, 20/26 on D
 
+Quality of competition. Without opponent lineups the bias is that bench units
+mostly face benches. starterness() -- a lineup's mean share of team floor
+time -- as an unpenalised covariate is consistently large: +9.9 pts/100 on
+offence and -9.1 on defence per unit (every season the same sign: offence
++5.3..+14.7, defence -16.0..-5.0), and with it next-season lineup R^2 rises
+O .0204 -> .0237, D .0081 -> .0084. But it lives at the lineup level: player
+estimates move by sd 0.026 (95% within -0.06..+0.05) and players-only R^2 is
+unchanged (.0203 / .0079), so it is off by default (--competition). Real
+opponent lineups (pbpstats get-lineup-opponent-summary, one request per
+lineup: ~786 per season for 52% of possessions) are the remaining test.
+
+Offence and defence are separate fits and could take different lam (fit_season
+accepts a pair), but `--evaluate --priors box` over 1000-128000 peaks at 16000
+on both ends, so one strength is used.
+
 R^2 that low is mostly the data: with ~1 point^2 of variance per possession,
 roughly three quarters of the weighted variance in lineup ratings is possession
 noise, so ~0.26 is a rough ceiling even for perfect knowledge of each lineup.
@@ -60,14 +75,14 @@ SLOTS = [f"p{k}_id" for k in range(1, 6)]
 # so a 9-game call-up doesn't arrive with a +8 prior.
 PRIOR_MP_HALF = 500
 
-LAMBDAS = [1000, 2000, 4000, 8000, 16000, 32000]
+LAMBDAS = [1000, 2000, 4000, 8000, 16000, 32000, 64000, 128000]
 PRIORS = ["zero", "box", "prev"]
 DEFAULT_PRIOR = "box"
 DEFAULT_LAM = 16000
 
 
 def load_panel(path):
-    cols = SLOTS + ["season", "OffPoss", "DefPoss", "Points", "OpponentPoints"]
+    cols = SLOTS + ["season", "TeamId", "OffPoss", "DefPoss", "Points", "OpponentPoints"]
     panel = pd.read_csv(path, usecols=cols)
     panel["season"] = panel["season"].astype(int)
     return panel
@@ -113,20 +128,47 @@ def ridge(X, y, w, lam, prior):
     solve. No intercept: y is already centred on the league rating.
     """
     Xw = X.multiply(w[:, None]).tocsr()
-    A = (X.T @ Xw).toarray() + lam * np.eye(X.shape[1])
+    pen = np.diag(lam) if np.ndim(lam) == 1 else lam * np.eye(X.shape[1])   # per-column or one
+    A = (X.T @ Xw).toarray() + pen
     b = Xw.T @ (y - X @ prior)
     return prior + np.linalg.solve(A, b)
 
 
-def fit_season(df, lam, prior_o, prior_d):
-    """Fit one season. prior_* are Series indexed by player_id (missing -> 0)."""
+def starterness(df):
+    """Per lineup: the mean of its five players' shares of their team's floor
+    time, centred on the season's possession-weighted mean. A proxy for the
+    quality of competition: starters mostly face starters, benches benches."""
+    w = (df["OffPoss"] + df["DefPoss"]).to_numpy(float)
+    team = np.repeat(df["TeamId"].to_numpy(), 5)
+    long = pd.DataFrame({"TeamId": team, "p": df[SLOTS].to_numpy().ravel(), "w": np.repeat(w, 5)})
+    share = long.groupby(["TeamId", "p"])["w"].sum()
+    share = share / df.assign(w=w).groupby("TeamId")["w"].sum().reindex(
+        share.index.get_level_values(0)).to_numpy()
+    z = share.reindex(pd.MultiIndex.from_arrays([team, long["p"]])).to_numpy().reshape(-1, 5).mean(1)
+    return z - np.average(z, weights=w)
+
+
+def fit_season(df, lam, prior_o, prior_d, competition=False):
+    """Fit one season. prior_* are Series indexed by player_id (missing -> 0).
+
+    `lam` is one strength for both ends, or an (offence, defence) pair: the two
+    are separate regressions, so each can be shrunk as much as its noise needs.
+    competition adds starterness(df) as an unpenalised lineup covariate.
+    """
+    lam_o, lam_d = lam if np.ndim(lam) else (lam, lam)
     players = pd.unique(df[SLOTS].to_numpy().ravel())
     X = design(df, players)
     y_off, w_off, y_def, w_def = _targets(df)
     p_o = prior_o.reindex(players).fillna(0.0).to_numpy()
     p_d = prior_d.reindex(players).fillna(0.0).to_numpy()
-    o = ridge(X, y_off, w_off, lam, p_o)
-    d = ridge(X, y_def, w_def, lam, p_d)
+    if competition:
+        Xz = sparse.hstack([X, sparse.csr_matrix(starterness(df)[:, None])]).tocsr()
+        n = len(players)
+        o = ridge(Xz, y_off, w_off, np.r_[np.full(n, lam_o), 1e-6], np.r_[p_o, 0.0])[:n]
+        d = ridge(Xz, y_def, w_def, np.r_[np.full(n, lam_d), 1e-6], np.r_[p_d, 0.0])[:n]
+    else:
+        o = ridge(X, y_off, w_off, lam_o, p_o)
+        d = ridge(X, y_def, w_def, lam_d, p_d)
 
     exposure = X.T @ np.column_stack([w_off, w_def])
     return pd.DataFrame({
@@ -154,12 +196,12 @@ def _prior_for(kind, season, box, prev):
     return o, d
 
 
-def fit_all(panel, box, lam, prior_kind):
+def fit_all(panel, box, lam, prior_kind, competition=False):
     """Fit every season in order; `prev` chains each season into the next."""
     out, prev = [], None
     for season in sorted(panel["season"].unique()):
         prior_o, prior_d = _prior_for(prior_kind, season, box, prev)
-        est = fit_season(panel[panel["season"] == season], lam, prior_o, prior_d)
+        est = fit_season(panel[panel["season"] == season], lam, prior_o, prior_d, competition)
         est["season"] = season
         out.append(est)
         prev = est
@@ -194,18 +236,21 @@ def box_as_estimates(panel, box):
     return b[b["season"].isin(panel["season"].unique())]
 
 
-def evaluate(panel, box):
+def evaluate(panel, box, priors=PRIORS):
+    """Grid over lam per prior. O and D are independent fits, so the best lam
+    is chosen per side from the same runs."""
     print(f"{'prior':>6} {'lam':>6} {'O R2':>7} {'D R2':>7}   (next-season lineup ratings)")
     o, d = score_next_season(panel, box_as_estimates(panel, box))
     print(f"{'BPM':>6} {'-':>6} {o:7.4f} {d:7.4f}   box score alone, no lineups")
     best = {}
-    for kind in PRIORS:
+    for kind in priors:
+        bo, bd = (-np.inf, None), (-np.inf, None)
         for lam in LAMBDAS:
             o, d = score_next_season(panel, fit_all(panel, box, lam, kind))
             print(f"{kind:>6} {lam:>6} {o:7.4f} {d:7.4f}", flush=True)
-            if o + d > best.get(kind, (None, -np.inf))[1]:
-                best[kind] = (lam, o + d)
-    print("best lam per prior:", {k: v[0] for k, v in best.items()})
+            bo, bd = max(bo, (o, lam), key=lambda v: v[0]), max(bd, (d, lam), key=lambda v: v[0])
+        best[kind] = (bo[1], bd[1])
+        print(f"{kind:>6} best: O lam {bo[1]:g} ({bo[0]:.4f}), D lam {bd[1]:g} ({bd[0]:.4f})")
     return best
 
 
@@ -215,9 +260,14 @@ def main():
     ap.add_argument("--panel", default=os.path.join("data", "lineup_panel.csv"))
     ap.add_argument("--adv", default=os.path.join("data", "Advanced.csv"))
     ap.add_argument("--prior", choices=PRIORS, default=DEFAULT_PRIOR)
+    ap.add_argument("--competition", action="store_true",
+                    help="adjust for quality of competition with the starterness proxy (off: "
+                         "it moves player estimates by ~0.03; see docstring)")
     ap.add_argument("--lam", type=float, default=None,
                     help="ridge strength in possessions (default: chosen by --evaluate)")
     ap.add_argument("--evaluate", action="store_true")
+    ap.add_argument("--priors", nargs="+", choices=PRIORS, default=PRIORS,
+                    help="priors to grid over with --evaluate")
     ap.add_argument("--out", default=os.path.join("data", "player_impact.csv"))
     args = ap.parse_args()
 
@@ -225,11 +275,11 @@ def main():
     box = box_prior(args.adv)
 
     if args.evaluate:
-        evaluate(panel, box)
+        evaluate(panel, box, args.priors)
         return 0
 
     lam = args.lam if args.lam is not None else DEFAULT_LAM
-    est = fit_all(panel, box, lam, args.prior)
+    est = fit_all(panel, box, lam, args.prior, args.competition)
     est = est[["player_id", "season", "o_impact", "d_impact", "net_impact",
                "off_poss", "def_poss"]].round(3)
     est.to_csv(args.out, index=False)

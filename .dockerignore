@@ -9,22 +9,11 @@
 backend/venv
 .vscode
 
-# The Chroma store (69 MB) is build-time only — export_index.py turns it into
-# backend/data/index/, which is what ships. Keeping it out of the build context
-# avoids paying for it in ECR pull time on every cold start.
-backend/chroma_db
+# Retired code and artifacts (LightFM, clustering, the Ask index build store).
+local_archive
 
-# Root-level data and model files (not needed in containers)
+# Root-level pipeline data (the image ships only backend/)
 data/
-master_stats.csv
-master_clustered.csv
-master_team_stats.csv
-master_team_clustered.csv
-adv_stats_combined.csv
-per_100_combined.csv
-per_36_combined.csv
-interactions.csv
-models_all.joblib
 
 # Frontend build artifacts
 nba-recs-frontend/node_modules

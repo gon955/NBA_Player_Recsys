@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<!--
+  Source of public/og.png, the 1200x630 link-preview image (layout.tsx).
+  Regenerate after editing, with any headless Chromium:
+    chrome-headless-shell --no-sandbox --hide-scrollbars --window-size=1200,630 \
+      --screenshot=public/og.png og-image.html
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<style>
+  html, body { margin: 0; width: 1200px; height: 630px; overflow: hidden; }
+  body {
+    font-family: "Helvetica Neue", Arial, "Liberation Sans", sans-serif;
+    color: #f1f5f9;
+    background:
+      radial-gradient(ellipse 900px 700px at 30% 30%, #232457 0%, #161838 45%, transparent 75%),
+      radial-gradient(ellipse 700px 600px at 95% 10%, #000000 0%, transparent 70%),
+      #0b0d22;
+    position: relative;
+  }
+  .edge { position: absolute; left: 0; top: 0; bottom: 0; width: 8px; background: #6366f1; }
+  .wrap { position: absolute; left: 80px; right: 80px; top: 62px; }
+  .kicker { color: #6366f1; font-weight: 700; font-size: 21px; letter-spacing: 1px; }
+  h1 { font-size: 92px; line-height: 1.0; margin: 26px 0 0; font-weight: 700; letter-spacing: -1px; }
+  .sub { color: #94a3b8; font-size: 32px; line-height: 1.38; margin-top: 26px; max-width: 760px; }
+  .tabs { display: flex; gap: 16px; margin-top: 38px; }
+  .tab { font-size: 26px; font-weight: 700; padding: 13px 26px; border-radius: 30px;
+         background: #0f172a; color: #94a3b8; border: 1px solid #1e293b; }
+  .tab.on { background: #6366f1; color: #ffffff; border-color: #6366f1; }
+  .rule { position: absolute; left: 80px; right: 80px; top: 528px; height: 1px; background: #1e293b; }
+  .foot { position: absolute; left: 80px; right: 80px; top: 553px; display: flex;
+          justify-content: space-between; color: #64748b; font-size: 21px; white-space: nowrap; }
+  .foot .url { font-family: "DejaVu Sans Mono", "Courier New", monospace; }
+</style>
+</head>
+<body>
+  <div class="edge"></div>
+  <div class="wrap">
+    <div class="kicker">REALISTIC NBA ROSTER RECOMMENDER</div>
+    <h1>NBA Player<br>Recommender</h1>
+    <div class="sub">Who would make your team better next season, among moves it could actually make.</div>
+    <div class="tabs"><span class="tab on">Recommendations</span><span class="tab">Ask Question</span></div>
+  </div>
+  <div class="rule"></div>
+  <div class="foot">
+    <span>Lineup impact model · Bedrock RAG · FastAPI on Lambda · Next.js</span>
+    <span class="url">nba-recs.pages.dev</span>
+  </div>
+</body>
+</html>

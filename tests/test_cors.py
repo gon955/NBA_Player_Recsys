@@ -20,7 +20,7 @@ def cors_client(monkeypatch):
 
     app.py reads the origin settings at module scope, so the middleware is built
     at import time and env changes only take effect on reload. Reloading just
-    app is cheap — inference stays in sys.modules, so the 20 MB model is not
+    app is cheap — recommender stays in sys.modules, so its lists are not
     reloaded.
     """
     import app as appmod

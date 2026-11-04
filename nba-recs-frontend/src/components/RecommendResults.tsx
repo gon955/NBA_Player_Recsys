@@ -29,9 +29,18 @@ export default function RecommendResults({ loading, error, results }: RecommendR
                   <p className="font-medium text-slate-100">
                     {idx + 1}. {r.player}
                   </p>
-                  <p className="text-xs text-slate-400 font-mono">
-                    score {r.score.toFixed(3)}
-                  </p>
+                  {r.explanation && (
+                    <p className="text-xs text-slate-400">
+                      {[
+                        r.explanation.age !== null ? `age ${r.explanation.age}` : null,
+                        r.explanation.bpm !== null
+                          ? `BPM ${r.explanation.bpm >= 0 ? "+" : ""}${r.explanation.bpm.toFixed(1)}`
+                          : null,
+                      ]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </p>
+                  )}
                 </div>
               </div>
               {r.explanation && <ExplanationCard explanation={r.explanation} />}

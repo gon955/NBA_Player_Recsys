@@ -30,10 +30,13 @@ htmlcov/
 # Kept locally, not part of the deployed app.
 backend/compare.py
 
-# Build-time only: embed_chunks.py writes it, export_index.py turns it into
-# backend/data/index/ (which IS tracked, and is what ships in the image).
-# Regenerate with `python embed_chunks.py`.
-backend/chroma_db/
+# Retired code and artifacts -- the LightFM recommender, the clustering
+# pipeline, and the Ask index's build scripts (they read LightFM-era outputs) --
+# kept on disk, out of the repo. backend/data/index/ (the Ask tab's shipped
+# index) stays tracked.
+local_archive/
+# build_ask_index.py's resumable cache of finished Titan embeddings.
+data/ask_embed_cache.jsonl
 
 # pbpstats extension: fetch_pbpstats.py's gzipped API response cache and the
 # bulk CSVs it renders from it (~445 MB; pbpstats_lineups.csv alone is 302 MB,
@@ -49,9 +52,8 @@ data/lineup_panel.csv
 # AWS CLI scratch output
 /response.json
 
-# Root-level pipeline outputs (regenerate with rec_sys.py)
-# The runtime copies backend/models_all.joblib, backend/interactions.csv and
-# backend/data/players.csv are tracked intentionally (they ship in the container).
+# Old root-level LightFM / clustering outputs, should any be regenerated from
+# local_archive/. backend/data/players.csv (the Ask tab's player table) is tracked.
 /models_all.joblib
 /interactions.csv
 /players.csv
@@ -67,13 +69,29 @@ data/lineup_panel.csv
 # HTML files). data/salaries.csv and data/team_payroll.csv are rendered from it
 # and tracked; --consolidate-only rebuilds them without the network.
 data/salaries_raw/
-# evaluate_recs.py's dump of every LightFM score (~18 MB); --refresh-lightfm rebuilds it.
+# The retired LightFM recommender's scores, kept locally as an optional
+# baseline: evaluate_recs.py / rubric.py read the full dump if present, and
+# impact_recs.py --compare its top 10s. Neither can be regenerated any more.
 data/lightfm_scores_full.csv
+data/recs_lightfm.csv
 # fetch_transactions.py's cache of BBRef transaction pages; data/transactions.csv is tracked.
 data/transactions_raw/
 
-# Saved browser copy of the clustering-audit artifact page; reference only, not project code.
-/Clusters to Recommendations.html
-/Clusters to Recommendations_files/
 # impact_recs.py --free-agency output (experimental, opt-in); regenerate when needed.
 data/recs_impact_fa.csv
+# fetch_wikipedia_fa.py's cache of Wikipedia transaction pages (re-fetching is
+# rate-limited); data/wikipedia_fa.csv is rendered from it.
+data/wikipedia_raw/
+# Regenerated diagnostics / analysis outputs nothing downstream reads:
+# lineup_features.py's crosswalk misses and fit_model.py's pooled pair fit
+# (impact_recs.py reads data/archetype_main.csv).
+data/unmatched_report.csv
+data/archetype_fit.csv
+# Generated reports nothing reads: impact_recs.py's top 10s (the app serves
+# backend/data/recs.csv, from export_recs.py) and contract_status.py's table
+# (acquisition.py recomputes it). Rerun the script to get them.
+data/recs_impact.csv
+data/recs_impact_open.csv
+data/contract_status.csv
+# Spreadsheet review sheets from audit.py sheet; decisions live in judgments.csv.
+data/review/review_*.csv
