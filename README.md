@@ -1,5 +1,7 @@
 # NBA Recommendation System
 
+Live at <https://nba-player-recsys.pages.dev>.
+
 For a team-season (say *Chicago 2025*), recommends players who would make the team better next season, among moves it could realistically make. Also answers natural-language questions about the 1999–2025 data. Four parts:
 
 - **Offline recommender pipeline** (root `*.py`) — a lineup-based player impact model, a projection of next-season impact, a model of how likely each team is to acquire each player, and the salary screen. It writes a ranked, explained list per team-season.
@@ -16,7 +18,7 @@ The project's history (the retired LightFM recommender, the clustering pipeline)
 
 ### 1. Environment
 
-**Python 3.9.** The backend still pins `pandas==1.2.4`, which has no wheels past 3.9; that is also why the Dockerfile uses `python:3.9-slim` rather than an AWS Lambda base image (the official python3.9 base image is past EOL). Lambda accepts any image implementing the Runtime API, which `awslambdaric` provides.
+**Python 3.9.** The backend still pins `pandas==1.2.4`, which has no wheels past 3.9; that is also why the Dockerfile uses `python:3.9-slim` rather than an AWS Lambda base image (the official python3.9 base image is past EOL). Lambda accepts any image implementing the Runtime API, which `awslambdaric` provides. boto3 dropped support for 3.9 in April 2026: the pinned version keeps working and logs a deprecation warning at startup, but it gets no more updates.
 
 ```bash
 conda env create -f environment.yml && conda activate recsys   # offline pipeline (+ tests, lint)
@@ -39,13 +41,13 @@ python player_seasons.py                 # player table: name, age, position, BP
 python weakness_test.py --write-curvature
 python contract_status.py
 python fetch_wikipedia_fa.py --consolidate-only   # no network if the cache exists
-python impact_recs.py                    # data/recs_impact*.csv (top 10s)
+python impact_recs.py                    # data/recs_impact*.csv (top 10s, gitignored)
 python export_recs.py                    # backend/data/recs.csv: what the app serves
 ```
 
 `export_recs.py` applies active veto rules and the review's flags, and writes the top 50 per team-season with the context each explanation needs. The backend does no inference; restart it to pick up a new `recs.csv`.
 
-The lineup panel (`data/lineup_panel.csv`, ~137 MB) and the pbpstats bulk files behind it are gitignored; `fetch_pbpstats.py` and `lineup_features.py` rebuild them.
+The lineup panel (`data/lineup_panel.csv`, ~137 MB) and the pbpstats bulk files behind it are gitignored; `fetch_pbpstats.py` and `lineup_features.py` rebuild them. `data/recs_impact*.csv` and `data/contract_status.csv` are also gitignored, because nothing reads them: they are reports to look at.
 
 ### 3. Grading
 
@@ -87,7 +89,7 @@ uvicorn app:app --reload
 | `GET /` | liveness banner |
 | `GET /health` | health check |
 | `GET /teams` | team → available seasons |
-| `POST /recommendations` | `{ user_id, k }` → ranked players with explanations (who goes out, the projected upgrade, salaries) |
+| `POST /recommendations` | `{ user_id, k }` → ranked players with explanations (who goes out, the projected upgrade, salaries). `era` is optional and ignored. |
 | `POST /ask` | `{ query, era?, n_results? }` → grounded answer |
 
 Environment variables:
@@ -105,7 +107,7 @@ npm run dev
 
 Set `NEXT_PUBLIC_API_BASE` in `.env.local` if the backend is not on `http://127.0.0.1:8000`. It is read at *build* time — baked into the bundle by `next build` — so any deployed frontend must be rebuilt to point at a different backend, whether it is the Docker image (`ARG NEXT_PUBLIC_API_BASE`) or Cloudflare Pages.
 
-`NEXT_PUBLIC_SITE_URL` is the canonical origin used to build the link-preview tags, and defaults to `https://nba-recs.pages.dev`. Set it when deploying to a custom domain — see [Link previews](#link-previews).
+`NEXT_PUBLIC_SITE_URL` is the canonical origin used to build the link-preview tags, and defaults to `https://nba-player-recsys.pages.dev`. Set it when deploying to a custom domain — see [Link previews](#link-previews).
 
 `next.config.ts` emits a **static export** (`out/`) by default. Every page here is a client component and all data is fetched from the backend in the browser, so there is no server to run. The compose image needs a Node server, so its Dockerfile sets `NEXT_OUTPUT=standalone` to get the previous `output: "standalone"` behaviour back.
 
@@ -119,7 +121,44 @@ Compose builds the same Lambda image used in production and overrides its entryp
 
 ### 8. Deploy the backend to Lambda
 
-Build, push to ECR, and point the `nba-recsys` function at the new image. The function runs as a container package on x86_64 with a 60 s timeout and 2048 MB. That memory was sized for a local ONNX embedding pass (Lambda scales CPU with memory), which is gone: what remains is a CSV lookup, a numpy scan and two Bedrock calls. A lower setting is likely enough and cheaper; measure before changing it.
+Pushing to GitHub does not deploy the backend. Cloudflare Pages rebuilds the frontend when `main` changes, but the Lambda only changes when you run these commands:
+
+```bash
+ACCOUNT=$(aws sts get-caller-identity --query Account --output text)
+REGISTRY=$ACCOUNT.dkr.ecr.us-west-2.amazonaws.com
+TAG=$(git rev-parse --short HEAD)
+
+# Note the running image's digest, for rolling back.
+aws lambda get-function --function-name nba-recsys --region us-west-2 --query Code.ResolvedImageUri --output text
+
+aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin $REGISTRY
+docker build --platform linux/amd64 -t $REGISTRY/nba-recsys:$TAG -f backend/Dockerfile .
+docker push $REGISTRY/nba-recsys:$TAG
+
+aws lambda update-function-code --function-name nba-recsys --region us-west-2 --image-uri $REGISTRY/nba-recsys:$TAG
+aws lambda wait function-updated --function-name nba-recsys --region us-west-2
+```
+
+Lambda rejects multi-platform image manifests. Docker's legacy builder only produces single-platform ones, but if your machine builds with BuildX, add `--provenance=false`.
+
+Then check the live function, with no `era` in the request:
+
+```bash
+URL=$(aws lambda get-function-url-config --function-name nba-recsys --region us-west-2 --query FunctionUrl --output text)
+curl -s "${URL}recommendations" -H 'content-type: application/json' -d '{"user_id":"Chicago Bulls_2025","k":1}'
+curl -s "${URL}ask" -H 'content-type: application/json' -d '{"query":"Who plays like Stephen Curry?"}'
+```
+
+To roll back, run `update-function-code` with the digest you noted, as `--image-uri <repository>@sha256:...`.
+
+**Deploy order when the API changes.** The Lambda and the frontend deploy separately, so check which order the running versions can tolerate. Replacing LightFM has to go backend first, then merge to `main`:
+
+| Running together | Result |
+|---|---|
+| New frontend, old backend | Every recommendation request fails with a 422, because the old backend requires `era` |
+| Old frontend, new backend | Recommendations still work, but their explanations are blank and the Clusters tab fails (`/cluster-summary` and `/static` are gone) |
+
+The function runs as a container package on x86_64 with a 60 s timeout and 2048 MB. That memory was sized for a local ONNX embedding pass (Lambda scales CPU with memory), which is gone: what remains is a CSV lookup, a numpy scan and two Bedrock calls. Peak memory was 278 MB across every team-season and three `/ask` calls in a local container. Lambda gives a smaller function less CPU, so measure latency before lowering it.
 
 The execution role needs `bedrock:InvokeModel` on `amazon.titan-embed-text-v2:0` as well as `amazon.nova-lite-v1:0`, with model access enabled for both in `us-west-2`. If the role's policy names model ARNs, add Titan before deploying, or `/ask` will fail with AccessDenied.
 
@@ -135,7 +174,7 @@ Cloudflare Pages settings:
 | Build command | `npm run build` |
 | Output directory | `out` |
 | Environment variable | `NEXT_PUBLIC_API_BASE` = the Lambda Function URL |
-| Environment variable | `NEXT_PUBLIC_SITE_URL` = the deployed origin (only if not `https://nba-recs.pages.dev`) |
+| Environment variable | `NEXT_PUBLIC_SITE_URL` = the deployed origin (only if not `https://nba-player-recsys.pages.dev`) |
 
 Pick framework preset **None**, not "Next.js" — that preset builds for the Workers runtime via `@cloudflare/next-on-pages`, which is for apps needing SSR and would fight the static export. `.nvmrc` pins Node 20 because Next 15 requires `>=18.18` and the default build image has shipped older.
 
@@ -146,7 +185,7 @@ Things that will bite otherwise:
 - Preview deployments each get their own origin (`<hash>.<project>.pages.dev`), which an exact-match list cannot cover, and `allow_credentials=True` rules out a `"*"` wildcard because browsers reject that pair. Set `ALLOWED_ORIGIN_REGEX` to cover them:
 
   ```
-  ALLOWED_ORIGIN_REGEX=https://([a-z0-9-]+\.)?nba-recs\.pages\.dev
+  ALLOWED_ORIGIN_REGEX=https://([a-z0-9-]+\.)?nba-player-recsys\.pages\.dev
   ```
 
 - Do not also configure CORS on the Lambda Function URL itself. It has its own CORS block, separate from the FastAPI middleware, and having both emit `Access-Control-Allow-Origin` produces a duplicate header that browsers reject.
@@ -247,7 +286,7 @@ backend/
   data/recs.csv       precomputed lists (export_recs.py)
   data/index/         Ask embeddings (Titan) + metadata + index_info.json (shipped)
   data/players.csv    Ask player table
-  Dockerfile          Lambda container image: deps -> builder/test -> runtime
+  Dockerfile          Lambda container image: deps -> prune/test -> runtime
 
 impact_model.py       lineup ridge: player impact per season
 lineup_features.py    5-man lineup panel from pbpstats

@@ -14,14 +14,15 @@ src/
     globals.css     Tailwind import and the dark palette tokens
   components/
     ViewTabs            Recommendations / Ask tab switcher
-    RecommendForm       team -> season -> k form
-    RecommendResults    ranked player cards
-    ExplanationCard     who goes out, the projected upgrade, salaries
+    TeamIndex           every team, shown before one is chosen
+    RecommendForm       team, season and list size; a change loads the list
+    RecommendResults    team header and the ranked table of moves
     PlayerAvatar        headshot with initials fallback
     AskPanel            RAG question box with an era filter
   lib/
     api.ts          API_BASE, typed fetch wrappers, response types
     era.ts          the three eras the Ask filter uses
+    teams.ts        each team's color, the page's one accent
 ```
 
 ## Running locally
@@ -46,7 +47,7 @@ The backend's CORS allowlist (`ALLOWED_ORIGINS`) must include whatever origin
 this app is served from; it defaults to `http://localhost:3000`.
 
 `NEXT_PUBLIC_SITE_URL` is the canonical origin this app is served from, and
-defaults to `https://nba-recs.pages.dev`. It only feeds the link-preview
+defaults to `https://nba-player-recsys.pages.dev`. It only feeds the link-preview
 metadata in `layout.tsx` — nothing at runtime reads it — but it has to be
 absolute and correct, because a static export has no request to infer the host
 from and crawlers reject relative `og:image` paths. Set it when deploying to a

@@ -1,22 +1,53 @@
 @import "tailwindcss";
 
-/* The UI commits to a single dark palette (see the slate-950 shell in page.tsx),
-   so there is no light/dark token swap here — just the app-wide ground and the
-   Geist faces loaded in layout.tsx. */
+/* A newspaper's agate page: paper, black ink, ruled tables, square corners.
+   The only strong color is --team, which page.tsx sets to the selected team's. */
 :root {
-  --background: #020617; /* slate-950 */
-  --foreground: #f1f5f9; /* slate-100 */
+  --paper: #edede7;
+  --ink: #121210;
+  --muted: #55554e;
+  --team: #121210;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-team: var(--team);
+  --font-sans: var(--font-franklin);
+  --font-serif: var(--font-newsreader);
+}
+
+html {
+  background: var(--paper);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  color: var(--ink);
+  font-family: var(--font-franklin), "Franklin Gothic Medium", Arial, sans-serif;
+  word-spacing: 0.06em;
+}
+
+::selection {
+  background: var(--team);
+  color: #fff;
+}
+
+:focus-visible {
+  outline: 2px solid var(--team);
+  outline-offset: 2px;
+}
+
+/* Native selects, kept for their keyboard and mobile behavior, without the chrome. */
+.select {
+  appearance: none;
+  background-color: transparent;
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(-45deg, transparent 50%, currentColor 50%);
+  background-position: right 7px center, right 1px center;
+  background-repeat: no-repeat;
+  background-size: 6px 6px;
+  border-bottom: 2px solid var(--ink);
+  font-weight: 700;
+  padding: 0.25rem 1.25rem 0.25rem 0;
 }
