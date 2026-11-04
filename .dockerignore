@@ -9,6 +9,10 @@
 backend/venv
 .vscode
 
+# Local-only files under backend/, which the image copies whole.
+backend/compare.py
+backend/.claude
+
 # Retired code and artifacts (LightFM, clustering, the Ask index build store).
 local_archive
 

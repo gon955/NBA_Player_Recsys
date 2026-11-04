@@ -1,10 +1,9 @@
 # Session handoff: recsys overhaul, phase 2
 
-Branch `recsys_overhaul` (phase 1 commit `9ddd81a`). **Nothing from this session is
-committed.** Run everything in the `recsys` conda env:
-`conda run -n recsys python ...`
+Branch `recsys_overhaul`. Phase 1 is merged to `main` (PR #11); phase 2 is committed on
+this branch and not merged. Run everything in a conda env built from `environment.yml`.
 
-Tests: `pytest tests_pipeline --no-cov` (95 pass) and `pytest tests --no-cov` (13 pass),
+Tests: `pytest tests_pipeline --no-cov` (95 pass) and `pytest tests --no-cov` (15 pass),
 run separately (both suites import a `helper.py`); `ruff check *.py tests_pipeline/` is clean.
 
 ---
@@ -16,8 +15,8 @@ For a team-season (e.g. *Denver 2024*), recommend players to acquire who are:
 2. **realistic**: the team could plausibly make the move;
 3. **specific to the team**.
 
-The live app still serves the original LightFM model, which recommends players who
-resemble a team's roster. This session built and validated its replacement, which
+`main` still serves the original LightFM model, which recommends players who
+resemble a team's roster; this branch retires it. This work built and validated its replacement, which
 has two parts:
 - a **value model**: projected player impact (`impact_model.py` → `impact_recs.project()`);
 - a **realism model**: P(this team acquires this player) (`acquisition.py`).
@@ -49,7 +48,7 @@ calibration, plus a feature-group ablation. Pooled AUC is shown for reference on
 | system | realism | weighted | quality ρ | team R² |
 |---|---|---|---|---|
 | random | ≈0.50 | ≈0.50 | ≈0.00 | – |
-| **LightFM (live today)** | 0.473 | **0.431** | 0.129 | – |
+| **LightFM (retired)** | 0.473 | **0.431** | 0.129 | – |
 | best available by BPM | 0.511 | 0.451 | 0.392 | +0.086 |
 | phase 1 default (start of session) | 0.492 | 0.519 | **−0.122** | +0.012 |
 | end of phase 2 session (w = 2) | 0.477 | 0.450 | 0.281 | +0.051 |
@@ -183,14 +182,14 @@ removed. The grid is in `impact_recs.py`'s docstring.
   lineup-level effect (+16% on next-season offence R²), but it moves player estimates
   by only about 0.03. Off by default.
 
-### Repo cleanup (staged, not committed)
+### Repo cleanup
 - 13 unreferenced BBRef CSVs removed with `git rm`.
 - `data/unmatched_report.csv` and `data/archetype_fit.csv` untracked and gitignored
   (still on disk).
 - `data/wikipedia_raw/` gitignored.
 - `xgboost==2.1.4` added to `environment.yml`.
-- **Kept by your decision:** the LightFM path (it still serves the live app) and the
-  Ask/RAG tab.
+- **Kept by your decision:** the Ask/RAG tab. The LightFM path was later retired
+  (see step 3 of the next steps).
 
 ---
 
