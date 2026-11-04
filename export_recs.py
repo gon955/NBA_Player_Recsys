@@ -17,6 +17,7 @@ Columns:
   with_ids, with, with_salary   who else goes out to match salary, when his
             salary alone does not (impact_recs.package_members); ';'-joined
   salary, replaces_salary, cap            dollars, season t
+  minutes   his floor time in season t, minutes per team game (floor_minutes())
 
 Veto rules switched on in audit.RULES (active=True, after passing
 `python audit.py rules`) and the review's flags (audit.JUDGMENTS, from
@@ -41,8 +42,16 @@ K_SERVE = 50     # the frontend's input allows up to 50
 VETO_SLACK = 30  # extra depth built when veto rules may remove entries
 
 
-def enrich(recs, players, cap=CAP):
-    """recs: impact_recs.build() output. players: player_seasons.csv."""
+def floor_minutes(member):
+    """(player_id, season) -> minutes per team game, from memberships() floor shares.
+    Summed across teams for a player traded mid-season. Games he missed count as
+    zero, so this is his share of the season, not minutes per game he played."""
+    return (member.groupby(["player_id", "season"])["share"].sum().clip(upper=1.0) * 48).rename("minutes")
+
+
+def enrich(recs, players, minutes, cap=CAP):
+    """recs: impact_recs.build() output. players: player_seasons.csv.
+    minutes: floor_minutes()."""
     out = recs.copy()
     out["season"] = out["user_id"].str.rsplit("_", n=1).str[1].astype(int)
     out["player_id"] = out["item_id"].str.rsplit("_", n=1).str[0]
@@ -69,9 +78,10 @@ def enrich(recs, players, cap=CAP):
     out["value"] = out["gain"]
     out["position_value"] = out["gain"] - out["need"]
     out["cap"] = out["season"].map(cap)
+    out["minutes"] = minutes.reindex(pd.MultiIndex.from_arrays([out["player_id"], out["season"]])).to_numpy()
     cols = ["user_id", "rank", "player_id", "player", "age", "bpm", "score", "value", "position_value",
             "replaces_id", "replaces", "replaces_value", "with_ids", "with", "with_salary",
-            "salary", "replaces_salary", "cap"]
+            "salary", "replaces_salary", "cap", "minutes"]
     return out[cols]
 
 
@@ -116,8 +126,10 @@ def main():
         print(f"Veto rules {', '.join(r.name for r in rules)} removed {by_rule} entries.")
     if n_flags:
         print(f"Review flags removed {by_flag} entries ({n_flags} flags on file).")
-    out = enrich(recs, pd.read_csv(paths.players))
-    out.round({"score": 3, "value": 3, "position_value": 3, "replaces_value": 3, "bpm": 1}).to_csv(
+    minutes = floor_minutes(ir.memberships(pd.read_csv(paths.panel, low_memory=False)))
+    out = enrich(recs, pd.read_csv(paths.players), minutes)
+    out.round({"score": 3, "value": 3, "position_value": 3, "replaces_value": 3, "bpm": 1,
+               "minutes": 1}).to_csv(
         args.out, index=False)
     print(f"Wrote {len(out)} recommendations for {out['user_id'].nunique()} "
           f"team-seasons to '{args.out}'")

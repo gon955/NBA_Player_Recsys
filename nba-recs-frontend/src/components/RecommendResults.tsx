@@ -15,7 +15,7 @@ function pts(x: number | null) {
 
 /** Rank, photo, player, then the figures. Shared by the header and every row. */
 const COLUMNS =
-  "md:grid md:grid-cols-[2.25rem_3.5rem_minmax(0,1fr)_2.5rem_3.5rem_4.5rem_4.5rem_5.5rem_5.5rem] md:gap-x-4";
+  "md:grid md:grid-cols-[2.25rem_3.5rem_minmax(0,1fr)_2.5rem_3.5rem_3.5rem_4.5rem_5.5rem_5.5rem] md:gap-x-4";
 
 function Figure({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -39,8 +39,8 @@ function Row({ rec, rank }: { rec: Recommendation; rank: number }) {
           <p className="text-lg leading-tight font-extrabold tracking-tight">{rec.player}</p>
           {e && (
             <p className="mt-1 text-sm leading-snug text-muted">
-              <span className="font-semibold text-ink">Out: </span>
-              {e.replaces} ({pts(e.replaces_value)}, {money(e.replaces_salary)})
+              <span className="font-semibold text-ink">Salary going out: </span>
+              {e.replaces} ({money(e.replaces_salary)})
               {e.with.length > 0 && (
                 <>
                   {" and "}
@@ -54,8 +54,7 @@ function Row({ rec, rank }: { rec: Recommendation; rank: number }) {
           <div className="mt-3 grid w-full grid-cols-3 gap-x-2 gap-y-3 md:contents">
             <Figure label="Age">{e.age === null ? "—" : Math.round(e.age)}</Figure>
             <Figure label="BPM">{pts(e.bpm)}</Figure>
-            <Figure label="Projected">{pts(e.value)}</Figure>
-            <Figure label="At position">{pts(e.position_value)}</Figure>
+            <Figure label="Minutes">{e.minutes === null ? "—" : e.minutes.toFixed(1)}</Figure>
             <Figure label="Salary">
               {money(e.salary)}
               {e.salary !== null && !!e.cap && (
@@ -64,8 +63,9 @@ function Row({ rec, rank }: { rec: Recommendation; rank: number }) {
                 </span>
               )}
             </Figure>
-            <Figure label="Upgrade">
-              <span className="text-xl font-black text-team md:text-2xl">{pts(e.upgrade)}</span>
+            <Figure label="At position">{pts(e.position_value)}</Figure>
+            <Figure label="Projected">
+              <span className="text-xl font-black text-team md:text-2xl">{pts(e.value)}</span>
             </Figure>
           </div>
         )}
@@ -118,10 +118,10 @@ export default function RecommendResults({
             <span className="col-span-3 col-start-1">Player</span>
             <span className="text-right">Age</span>
             <span className="text-right">BPM</span>
-            <span className="text-right">Projected</span>
-            <span className="text-right">At position</span>
+            <span className="text-right">Minutes</span>
             <span className="text-right">Salary</span>
-            <span className="text-right">Upgrade</span>
+            <span className="text-right">At position</span>
+            <span className="text-right">Projected</span>
           </div>
           <ol className="mt-4 border-b-2 border-ink md:mt-0">
             {results.map((r, idx) => (
@@ -130,10 +130,12 @@ export default function RecommendResults({
           </ol>
           <p className="mt-3 max-w-3xl font-serif text-[0.95rem] leading-snug text-muted">
             <em>Projected</em> is his net impact next season if he changes teams, in points per 100
-            possessions against league average. <em>At position</em> is the same measure for this
-            team&apos;s current rotation at his position. <em>Upgrade</em> is his projection minus
-            that of the first player under <em>Out</em>, who is the one he replaces. Any second name
-            is an extra contract needed to match salary.
+            possessions against league average, whatever his minutes. <em>At position</em> is the
+            same measure for this team&apos;s current rotation at his position. <em>Minutes</em> is
+            his floor time last season per team game, so games he missed count as zero.{" "}
+            <em>Salary going out</em> names the contracts that make the trade legal, not whose
+            minutes he would take. How much a move would help the team depends on those minutes,
+            which this list does not yet estimate.
           </p>
         </>
       )}
