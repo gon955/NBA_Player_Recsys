@@ -1,13 +1,15 @@
 import type { Recommendation } from "@/lib/api";
 import PlayerAvatar from "./PlayerAvatar";
 
-function money(x: number | null) {
-  if (x === null) return "—";
+// The frontend and the Lambda deploy separately, so a field can be missing from
+// the response during a rollout. Render a dash rather than crash the page.
+function money(x: number | null | undefined) {
+  if (x == null) return "—";
   return x >= 1e6 ? `$${(x / 1e6).toFixed(1)}M` : `$${Math.round(x / 1e3)}K`;
 }
 
-function pts(x: number | null) {
-  if (x === null) return "—";
+function pts(x: number | null | undefined) {
+  if (x == null) return "—";
   // Round before choosing the sign, so -0.04 reads +0.0 and not a minus zero.
   const rounded = Math.round(x * 10) / 10;
   return `${rounded >= 0 ? "+" : "\u2212"}${Math.abs(rounded).toFixed(1)}`;
@@ -41,7 +43,7 @@ function Row({ rec, rank }: { rec: Recommendation; rank: number }) {
             <p className="mt-1 text-sm leading-snug text-muted">
               <span className="font-semibold text-ink">Salary going out: </span>
               {e.replaces} ({money(e.replaces_salary)})
-              {e.with.length > 0 && (
+              {e.with?.length > 0 && (
                 <>
                   {" and "}
                   {e.with.join(" and ")} ({money(e.with_salary)})
@@ -52,12 +54,12 @@ function Row({ rec, rank }: { rec: Recommendation; rank: number }) {
         </div>
         {e && (
           <div className="mt-3 grid w-full grid-cols-3 gap-x-2 gap-y-3 md:contents">
-            <Figure label="Age">{e.age === null ? "—" : Math.round(e.age)}</Figure>
+            <Figure label="Age">{e.age == null ? "—" : Math.round(e.age)}</Figure>
             <Figure label="BPM">{pts(e.bpm)}</Figure>
-            <Figure label="Minutes">{e.minutes === null ? "—" : e.minutes.toFixed(1)}</Figure>
+            <Figure label="Minutes">{e.minutes == null ? "—" : e.minutes.toFixed(1)}</Figure>
             <Figure label="Salary">
               {money(e.salary)}
-              {e.salary !== null && !!e.cap && (
+              {e.salary != null && !!e.cap && (
                 <span className="hidden text-xs text-muted md:block">
                   {Math.round((100 * e.salary) / e.cap)}% of cap
                 </span>
