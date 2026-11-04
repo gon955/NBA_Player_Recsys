@@ -13,18 +13,16 @@ src/
     page.tsx        state + composition only; no markup beyond the shell
     globals.css     Tailwind import and the dark palette tokens
   components/
-    ViewTabs            Recommend / Clusters / Ask tab switcher
-    RecommendForm       team -> season -> k form
-    RecommendResults    ranked player cards
-    ExplanationCard     per-recommendation LightFM feature breakdown
+    ViewTabs            Recommendations / Ask tab switcher
+    TeamIndex           every team, shown before one is chosen
+    RecommendForm       team, season and list size; a change loads the list
+    RecommendResults    team header and the ranked table of moves
     PlayerAvatar        headshot with initials fallback
-    ClusterImage        cluster PNG served off the backend's /static mount
-    ClusterOverview     per-era cluster population bars + PCA links
     AskPanel            RAG question box with an era filter
   lib/
     api.ts          API_BASE, typed fetch wrappers, response types
-    era.ts          the three model eras and the season -> era mapping
-    features.ts     raw LightFM feature strings -> plain English
+    era.ts          the three eras the Ask filter uses
+    teams.ts        each team's color, the page's one accent
 ```
 
 ## Running locally
@@ -49,7 +47,7 @@ The backend's CORS allowlist (`ALLOWED_ORIGINS`) must include whatever origin
 this app is served from; it defaults to `http://localhost:3000`.
 
 `NEXT_PUBLIC_SITE_URL` is the canonical origin this app is served from, and
-defaults to `https://nba-recs.pages.dev`. It only feeds the link-preview
+defaults to `https://nba-player-recsys.pages.dev`. It only feeds the link-preview
 metadata in `layout.tsx` — nothing at runtime reads it — but it has to be
 absolute and correct, because a static export has no request to infer the host
 from and crawlers reject relative `og:image` paths. Set it when deploying to a
@@ -71,21 +69,21 @@ Two things to know when changing them:
   it saw first for days.
 - `og:image` must resolve over plain HTTPS with no redirect and no auth.
   Cloudflare Pages serves `public/og.png` straight from the CDN, which
-  satisfies that; pointing it at the Lambda's `/static/` mount would not, since
-  every fetch would be a cold-startable invocation.
+  satisfies that; a Lambda-served image would not, since every fetch would be
+  a cold-startable invocation.
+
+`public/og.png` is rendered from `og-image.html`; the command is in that file.
 
 ## Backend contract
 
 | Call | Endpoint |
 |---|---|
 | `getTeams` | `GET /teams` → `{ "<team name>": [seasons] }` |
-| `getRecommendations` | `POST /recommendations` `{era, user_id, k}` |
-| `getClusterSummaries` | `GET /cluster-summary/{player,team}` |
+| `getRecommendations` | `POST /recommendations` `{user_id, k}` |
 | `askQuestion` | `POST /ask` `{query, era, n_results}` |
 
-`user_id` is `"<team name>_<season>"` (e.g. `Boston Celtics_2018`), and `era` is
-derived from the season by `getEraFromYear`.
+`user_id` is `"<team name>_<season>"` (e.g. `Boston Celtics_2018`).
 
-`POST /recommendations` reports domain errors (unknown era, team not in the
-model) as HTTP **200** with an `{error}` body, so `api.ts` checks the payload
-rather than the status code.
+`POST /recommendations` reports domain errors (a team-season with no list) as
+HTTP **200** with an `{error}` body, so `api.ts` checks the payload rather than
+the status code.

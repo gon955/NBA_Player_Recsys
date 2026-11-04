@@ -2,8 +2,7 @@
 
 export const VIEWS = [
   { id: "recommend", label: "Recommendations" },
-  { id: "clusters", label: "Cluster Overview" },
-  { id: "ask", label: "Ask Question" },
+  { id: "ask", label: "Ask the data" },
 ] as const;
 
 export type View = (typeof VIEWS)[number]["id"];
@@ -15,20 +14,20 @@ type ViewTabsProps = {
 
 export default function ViewTabs({ view, onChange }: ViewTabsProps) {
   return (
-    <div className="mt-6 flex flex-wrap gap-3">
+    <nav aria-label="Sections" className="flex gap-6">
       {VIEWS.map((v) => (
         <button
           key={v.id}
           type="button"
           onClick={() => onChange(v.id)}
-          aria-pressed={view === v.id}
-          className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-            view === v.id ? "bg-indigo-500 text-white" : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+          aria-current={view === v.id ? "page" : undefined}
+          className={`py-2 text-sm font-bold border-b-4 cursor-pointer ${
+            view === v.id ? "border-team text-ink" : "border-transparent text-muted hover:text-ink"
           }`}
         >
           {v.label}
         </button>
       ))}
-    </div>
+    </nav>
   );
 }

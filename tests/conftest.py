@@ -1,6 +1,6 @@
 """Shared fixtures.
 
-backend/app.py imports its siblings as top-level modules (`from inference import
+backend/app.py imports its siblings as top-level modules (`from recommender import
 ...`), because in the container the backend directory *is* the working directory
 — see the Dockerfile's `WORKDIR /app; COPY backend/ .`. Reproducing that here
 means putting backend/ on sys.path rather than importing it as a package, so the
@@ -23,9 +23,8 @@ sys.path.insert(0, BACKEND_DIR)
 def client():
     """TestClient over the real app.
 
-    Importing app pulls in inference, which loads models_all.joblib (~20 MB) and
-    interactions.csv at module scope — both are tracked, so this needs no
-    fixtures on disk. It does not need AWS: rag.py builds its Bedrock client and
+    Importing app pulls in recommender, which loads data/recs.csv at module
+    scope — it is tracked, so this needs no fixtures on disk. It does not need AWS: rag.py builds its Bedrock client and
     embedder lazily, so nothing here reaches the network.
     """
     from fastapi.testclient import TestClient

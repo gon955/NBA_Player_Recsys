@@ -41,12 +41,9 @@ jobs:
 
       - uses: docker/setup-buildx-action@v3
 
-      # Tests run inside the image rather than on the runner. lightfm==1.17 is an
-      # sdist that compiles against numpy at build time and does not install
-      # cleanly on a bare runner; containerising is the project's answer to that,
-      # so CI exercises the same compiled dependency set the runtime uses.
-      # The `test` stage reuses the `deps` layer, so it never downloads the
-      # fastembed weights the production image bakes in.
+      # Tests run inside the image rather than on the runner, so CI exercises
+      # exactly the dependency set the runtime uses (Python 3.9, pandas 1.2.4).
+      # The `test` stage reuses the `deps` layer the runtime image is built from.
       - name: Build the test image
         uses: docker/build-push-action@v6
         with:
@@ -58,8 +55,8 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      # The suite imports backend/app.py, which loads models_all.joblib and
-      # interactions.csv from the repo. Both are tracked, so a plain checkout is
+      # The suite imports backend/app.py, which loads backend/data/recs.csv
+      # from the repo. It is tracked, so a plain checkout is
       # enough, and no AWS credentials are needed (rag.py builds its Bedrock
       # client lazily, and nothing under tests/ reaches /ask).
       - name: Run pytest

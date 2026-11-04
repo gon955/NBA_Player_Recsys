@@ -314,12 +314,6 @@ def load_lineups(path):
 
 SLOTS = [f"p{k}" for k in range(1, 6)]
 
-# What each lineup slot carries over from players.csv. Era-relative archetype
-# plus position and a box-score impact prior; enough to ask "which archetype
-# mixes outscore their parts" without dragging in all 68 columns.
-COVARIATES = {"cluster_label": "cluster", "pos": "pos", "bpm": "bpm"}
-
-
 def build_panel(lineups, crosswalk):
     """One row per (season, team, 5-man unit), players as BBRef ids.
 
@@ -367,32 +361,6 @@ def build_panel(lineups, crosswalk):
     return panel.reset_index(drop=True)
 
 
-def attach_covariates(panel, players):
-    """Add each slot's archetype, position and BPM from players.csv.
-
-    players.csv is the filtered modelling subset (g >= 20 and the like), so
-    deep-bench players have no row. They become cluster "unknown" rather than
-    being dropped: the lineup's possessions are still real.
-    """
-    cov = players[["player_id", "season"] + list(COVARIATES)].copy()
-    cov["season"] = cov["season"].astype(int)
-    cov = cov.set_index(["player_id", "season"])
-
-    panel = panel.copy()
-    for s in SLOTS:
-        idx = pd.MultiIndex.from_arrays([panel[f"{s}_id"], panel["season"]])
-        vals = cov.reindex(idx)
-        for col, short in COVARIATES.items():
-            panel[f"{s}_{short}"] = vals[col].to_numpy()
-        panel[f"{s}_cluster"] = panel[f"{s}_cluster"].fillna("unknown")
-
-    known = (panel[[f"{s}_cluster" for s in SLOTS]] != "unknown").sum(axis=1)
-    panel["n_known"] = known
-    full = panel.loc[known == 5, "poss"].sum() / panel["poss"].sum()
-    print(f"Possessions with all five players in players.csv: {full:.2%}")
-    return panel
-
-
 def explode(panel):
     """Long form: one row per (lineup, player on the floor).
 
@@ -425,14 +393,11 @@ def main():
                     help="full player universe; do NOT point this at players.csv, "
                          "which is the filtered modelling subset")
     ap.add_argument("--lineups", default="data/pbpstats_lineups.csv")
-    ap.add_argument("--players", default=os.path.join("backend", "data", "players.csv"),
-                    help="covariates (cluster, pos, bpm) per player-season")
     ap.add_argument("--out-dir", default="data")
     args = ap.parse_args()
 
     crosswalk = build_crosswalk(args.pbp, args.bbref, args.out_dir)
     panel = build_panel(load_lineups(args.lineups), crosswalk)
-    panel = attach_covariates(panel, pd.read_csv(args.players))
 
     out = os.path.join(args.out_dir, "lineup_panel.csv")
     panel.to_csv(out, index=False)

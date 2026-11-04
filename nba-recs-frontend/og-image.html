@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<!--
+  Source of public/og.png, the 1200x630 link-preview image (layout.tsx).
+  Regenerate after editing, with any headless Chromium:
+    chrome-headless-shell --no-sandbox --hide-scrollbars --window-size=1200,630 \
+      --virtual-time-budget=8000 --screenshot=public/og.png og-image.html
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@500;900&family=Newsreader:ital@1&display=block" rel="stylesheet">
+<style>
+  html, body { margin: 0; width: 1200px; height: 630px; overflow: hidden; }
+  body { background: #edede7; color: #121210; font-family: "Libre Franklin", Arial, sans-serif;
+         padding: 56px 64px; box-sizing: border-box; display: flex; flex-direction: column; }
+  h1 { font-size: 138px; line-height: 0.92; margin: 0; font-weight: 900; letter-spacing: -0.03em; }
+  .rule { height: 12px; background: #ce1141; margin-top: 28px; }
+  .deck { font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: 38px;
+          line-height: 1.2; margin-top: 24px; max-width: 1000px; color: #33332e; }
+  .ticks { display: flex; gap: 6px; margin-top: auto; }
+  .ticks i { width: 29px; height: 29px; display: block; }
+  .foot { display: flex; justify-content: space-between; font-weight: 500; font-size: 24px;
+          margin-top: 18px; color: #55554e; }
+</style>
+</head>
+<body>
+  <h1>NBA Player<br>Recommender</h1>
+  <div class="rule"></div>
+  <div class="deck">Who would make a team better next season, among moves it could actually make.</div>
+  <div class="ticks" id="ticks"></div>
+  <div class="foot"><span>Every team, every season since 1999</span><span>nba-player-recsys.pages.dev</span></div>
+  <script>
+    for (const c of ["#c8102e","#007a33","#111111","#00707f","#ce1141","#860038","#00538c","#0e2240","#1d42ba","#1d428a","#ce1141","#002d62","#c8102e","#552583","#12173f","#98002e","#00471b","#0c2340","#0c2340","#0060a8","#0064a4","#0064a4","#0060a8","#1d1160","#c2252b","#5a2d81","#1a1a1a","#ce1141","#002b5c","#002b5c"]) {
+      const t = document.createElement("i"); t.style.background = c; document.getElementById("ticks").append(t);
+    }
+  </script>
+</body>
+</html>

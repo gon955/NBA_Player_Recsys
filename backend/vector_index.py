@@ -9,18 +9,22 @@ a Lambda container image ("attempt to write a readonly database") because
 everything outside /tmp is read-only. Copying 69 MB of chroma_db into /tmp on
 every cold start would work, but it buys nothing over the alternative.
 
-SOFT: the whole corpus is 8,640 vectors x 384 dims. That is small enough that a
+SOFT: the whole corpus is ~10,300 vectors x 512 dims. That is small enough that a
 brute-force scan beats an HNSW lookup once you count index load time — a
 filtered scan measures ~3 ms. Dropping chromadb also removes a ~0.56 s import
 and its dependency tree from the image.
 
 Search reproduces Chroma's default metric (squared L2) and returns byte-identical
-top-k to the collections it replaced. Files come from export_index.py.
+top-k to the collections it replaced. The vectors are Amazon Titan embeddings
+(unit length, so squared L2 ranks as cosine does), written by build_ask_index.py
+with the model and dimensions recorded in index_info.json; rag.py embeds each
+question with the same model.
 
 Loading is lazy — importing this module touches no disk, so a cold start that
 only serves /health or /recommendations never pays for the index.
 """
 
+import json
 import os
 
 import numpy as np
@@ -89,15 +93,24 @@ def get_index(name):
         if not os.path.exists(emb_path) or not os.path.exists(meta_path):
             raise FileNotFoundError(
                 f"vector_index: missing index files for '{name}' in {INDEX_DIR}. "
-                f"Run `python backend/export_index.py` against chroma_db and commit "
-                f"the output, or bundle data/index/ into the deployment artifact."
+                f"backend/data/index/ is tracked and ships in the image; restore it "
+                f"from git, or rebuild it with `python build_ask_index.py`."
             )
         emb = np.load(emb_path)
         meta = pd.read_csv(meta_path)
+        info_path = os.path.join(INDEX_DIR, "index_info.json")
+        if os.path.exists(info_path):
+            with open(info_path) as f:
+                dims = json.load(f)["dimensions"]
+            if emb.shape[1] != dims:
+                raise RuntimeError(
+                    f"vector_index: '{name}' has {emb.shape[1]}-dim embeddings but "
+                    f"index_info.json says {dims}; rebuild with `python build_ask_index.py`."
+                )
         if len(meta) != len(emb):
             raise RuntimeError(
                 f"vector_index: '{name}' has {len(meta)} metadata rows but "
-                f"{len(emb)} embeddings — re-run export_index.py."
+                f"{len(emb)} embeddings — the index files have drifted; restore them from git."
             )
         _INDEXES[name] = _Index(emb, meta)
     return _INDEXES[name]

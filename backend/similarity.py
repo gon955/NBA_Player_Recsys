@@ -1,15 +1,10 @@
 """
 similarity.py — "who plays like X" via stat-profile nearest neighbors.
  
-WHY THIS EXISTS (and why it isn't in rec_sys.py):
-The LightFM embeddings encode ROSTER CO-OCCURRENCE (team-season <-> player-season
-interactions), so their nearest neighbors are teammates, not stylistic comps.
-That signal is correct for "which players fit this team" — it's just the wrong
-signal for "who plays like Nash". Playing style lives in the per-100 rate stats,
-so style similarity is a separate computation over those columns.
- 
-Note this module does NOT load models_all.joblib — it's pure pandas/numpy over
-the stat CSV, so it's cheap to import.
+WHY THIS EXISTS: playing style lives in the per-100 rate stats, so "who plays
+like Nash" is a nearest-neighbour search over those columns, separate from the
+recommender (which asks who would make a team better). It's pure pandas/numpy
+over data/players.csv, so it's cheap to import.
  
 ERA HANDLING: stats are z-scored WITHIN each era, so every player is expressed
 as "how far from his era's peers" rather than in raw units. That makes
@@ -26,15 +21,11 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-PROJECT_ROOT = os.path.dirname(BASE_DIR)
 
 
 _CANDIDATES = [
     os.path.join(BASE_DIR, "data", "players.csv"),      # runtime / container (primary)
     os.path.join(BASE_DIR, "players.csv"),
-    os.path.join(PROJECT_ROOT, "players.csv"),          # build-time pipeline output
-    os.path.join(BASE_DIR, "data", "master_clustered.csv"),
-    os.path.join(PROJECT_ROOT, "master_clustered.csv"),
 ]
 CSV_PATH = next((p for p in _CANDIDATES if os.path.exists(p)), _CANDIDATES[0])
 
@@ -108,9 +99,8 @@ def _typical_nn(X_n):
 def _build_model():
     if not os.path.exists(CSV_PATH):
         raise FileNotFoundError(
-            f"similarity: no data file found. Looked for players.csv / "
-            f"master_clustered.csv in {BASE_DIR} and {PROJECT_ROOT}. Bundle the "
-            f"CSV into the deployment artifact."
+            f"similarity: no players.csv in {BASE_DIR} or {BASE_DIR}/data. "
+            f"Bundle the CSV into the deployment artifact."
         )
     df = pd.read_csv(CSV_PATH, low_memory=False)
 

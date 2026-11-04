@@ -18,19 +18,23 @@ export default function PlayerAvatar({ name, photoUrl }: PlayerAvatarProps) {
     .toUpperCase();
 
   return (
-    <div className="h-16 w-16 shrink-0 flex items-center justify-center rounded-2xl bg-slate-800 ring-1 ring-white/10 overflow-hidden">
+    <div className="flex h-16 w-14 shrink-0 items-center justify-center overflow-hidden bg-ink/10">
       {photoUrl && !failed ? (
         // Headshots come from basketball-reference, which is not configured as a
         // next/image remote pattern; a plain img keeps the fallback logic simple.
+        // Multiply lays the white photo background into the paper, like newsprint.
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={photoUrl}
-          alt={`${name} headshot`}
-          className="h-full w-full object-contain bg-white"
+          alt=""
+          loading="lazy"
+          className="h-full w-full object-cover object-top grayscale mix-blend-multiply"
           onError={() => setFailed(true)}
         />
       ) : (
-        <span className="text-sm font-semibold text-slate-400">{initials}</span>
+        <span aria-hidden className="text-sm font-bold text-muted">
+          {initials}
+        </span>
       )}
     </div>
   );

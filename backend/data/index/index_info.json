@@ -1,0 +1,6 @@
+{
+  "model": "amazon.titan-embed-text-v2:0",
+  "dimensions": 512,
+  "normalize": true,
+  "region": "us-west-2"
+}

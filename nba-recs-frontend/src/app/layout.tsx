@@ -1,15 +1,16 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Libre_Franklin, Newsreader } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const franklin = Libre_Franklin({
+  variable: "--font-franklin",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const newsreader = Newsreader({
+  variable: "--font-newsreader",
   subsets: ["latin"],
+  style: ["normal", "italic"],
 });
 
 // Link unfurlers (LinkedIn, Slack, iMessage, X) refuse to build a preview from
@@ -17,12 +18,12 @@ const geistMono = Geist_Mono({
 // from, so the canonical origin has to be baked in at build time. Override it
 // with NEXT_PUBLIC_SITE_URL when deploying anywhere other than the production
 // Pages project — a preview deployment, or a custom domain.
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://nba-recs.pages.dev";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://nba-player-recsys.pages.dev";
 
 const title = "NBA Player Recommender";
 const description =
-  "Era-aware NBA roster recommendations, player archetype clusters, and grounded " +
-  "natural-language answers over 1999-2025 player and team data.";
+  "Which players would make an NBA team better next season, among moves it could " +
+  "actually make, plus grounded natural-language answers over 1999-2025 player and team data.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -42,7 +43,7 @@ export const metadata: Metadata = {
         url: "/og.png",
         width: 1200,
         height: 630,
-        alt: "NBA Player Recommender — era-aware recommendations, archetype clusters, and grounded Q&A",
+        alt: "NBA Player Recommender — realistic roster recommendations and grounded Q&A",
       },
     ],
   },
@@ -63,7 +64,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${franklin.variable} ${newsreader.variable} antialiased`}
       >
         {children}
       </body>

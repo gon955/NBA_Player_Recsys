@@ -1,23 +1,26 @@
 export type RecommendPayload = {
-  era: string;
   user_id: string;
   k?: number;
 };
 
-export type FeatureContribution = {
-  feature: string;
-  weight: number;
-};
-
+/** Why a player is on the list: the move the impact recommender found.
+ *  `value` is projected net impact next season if he changes teams, points
+ *  per 100 possessions vs. league average; `position_value` the same for the
+ *  team's current rotation at his position, minutes-weighted. */
 export type RecommendationExplanation = {
-  score_total?: number;
-  user_bias?: number;
-  item_bias?: number;
-  top_user_features?: FeatureContribution[];
-  top_item_features?: FeatureContribution[];
-  team_cluster_image?: string | null;
-  player_cluster_image?: string | null;
-  error?: string;
+  age: number | null;
+  bpm: number | null;
+  value: number | null;
+  position_value: number | null;
+  replaces: string;
+  replaces_id: string;
+  replaces_value: number | null;
+  with: string[];
+  with_salary: number | null;
+  upgrade: number | null;
+  salary: number | null;
+  replaces_salary: number | null;
+  cap: number | null;
 } | null;
 
 export type Recommendation = {
@@ -28,30 +31,12 @@ export type Recommendation = {
 };
 
 export type RecommendResponse =
-  | { user: string; era: string; recommendations: Recommendation[] }
+  | { user: string; era: string | null; recommendations: Recommendation[] }
   | { error: string };
-
-export type ClusterSummaryRecord = {
-  era: string;
-  cluster_label: string;
-  count: number;
-};
-
-export type ClusterSummaryResponse = {
-  kind: "player" | "team";
-  clusters: ClusterSummaryRecord[];
-};
-
-export type ClusterKind = "player" | "team";
 
 /** Single source of truth for the backend origin. Baked at build time, so a
  *  containerized frontend must be rebuilt to point at a different backend. */
 export const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://127.0.0.1:8000";
-
-/** Cluster PCA scatter plots are served straight off the backend's /static mount. */
-export function clusterPcaUrl(kind: ClusterKind, era: string) {
-  return `${API_BASE}/static/cluster/${kind}_pca_${era.replace(/ /g, "_")}.png`;
-}
 
 async function failure(res: Response, fallback: string) {
   const text = await res.text().catch(() => "");
@@ -74,26 +59,11 @@ export async function getRecommendations(payload: RecommendPayload, signal?: Abo
 
   if (!res.ok) throw await failure(res, `Request failed with status ${res.status}`);
 
-  // The backend reports domain errors (unknown era, missing user) as HTTP 200
+  // The backend reports domain errors (an unknown team-season) as HTTP 200
   // with an {error} body, so status alone is not enough to detect failure.
   const data = (await res.json()) as RecommendResponse;
   if ("error" in data) throw new Error(data.error);
   return data;
-}
-
-async function fetchClusterSummary(kind: ClusterKind, signal?: AbortSignal) {
-  const res = await fetch(`${API_BASE}/cluster-summary/${kind}`, { signal });
-  if (!res.ok) throw await failure(res, `Failed to fetch ${kind} clusters`);
-  const data = (await res.json()) as ClusterSummaryResponse;
-  return data.clusters;
-}
-
-export async function getClusterSummaries(signal?: AbortSignal) {
-  const [player, team] = await Promise.all([
-    fetchClusterSummary("player", signal),
-    fetchClusterSummary("team", signal),
-  ]);
-  return { player, team };
 }
 
 export async function askQuestion(
